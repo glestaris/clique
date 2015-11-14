@@ -1,5 +1,12 @@
+language: go
 sudo: false
-language: go 
 go:
   - "1.5"
-
+before_script:
+  - go vet ./...
+install:
+  - go get github.com/onsi/ginkgo
+  - go get github.com/onsi/gomega
+script:
+  - make all
+  - make test
