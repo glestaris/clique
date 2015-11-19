@@ -1,7 +1,8 @@
 #!/bin/bash
 
+ginkgo_args="-p -race"
 if [ "$1" != "" ]; then
-  ginkgo $1
+  ginkgo $ginkgo_args $1
 else
-  ginkgo -r
+  ginkgo $ginkgo_args -r
 fi
