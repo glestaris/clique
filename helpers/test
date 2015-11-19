@@ -1,0 +1,10 @@
+#!/bin/bash
+set -x -e
+root_path=$(cd $(dirname $BASH_SOURCE)/..; pwd)
+
+cd $root_path
+make clean
+go vet ./...
+make all
+make test
+
