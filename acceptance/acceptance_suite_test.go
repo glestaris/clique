@@ -8,6 +8,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 
 	"testing"
@@ -72,10 +73,17 @@ func startClique(cfg config.Config, args ...string) (*runner.ClqProcess, error) 
 	finalArgs := []string{"-config", configFilePath}
 	finalArgs = append(finalArgs, args...)
 	cmd := exec.Command(cliqueAgentBin, finalArgs...)
+
+	buffer := gbytes.NewBuffer()
+	cmd.Stdout = buffer
+	cmd.Stderr = buffer
+
 	if err := cmd.Start(); err != nil {
 		os.Remove(configFilePath)
 		return nil, err
 	}
+
+	Eventually(buffer).Should(gbytes.Say("iCE Clique Agent"))
 
 	return runner.NewClqProcess(cmd.Process, cfg, configFilePath), nil
 }
