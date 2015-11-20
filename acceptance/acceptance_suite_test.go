@@ -2,12 +2,18 @@ package acceptance_test
 
 import (
 	"encoding/json"
+	"io/ioutil"
+	"os"
+	"os/exec"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 
 	"testing"
+
+	"github.com/glestaris/ice-clique/acceptance/runner"
+	"github.com/glestaris/ice-clique/config"
 )
 
 var cliqueAgentBin string
@@ -46,4 +52,30 @@ func TestAcceptance(t *testing.T) {
 	})
 
 	RunSpecs(t, "Acceptance Suite")
+}
+
+func startClique(cfg config.Config, args ...string) (*runner.ClqProcess, error) {
+	configFile, err := ioutil.TempFile("", "ice-clique-config")
+	if err != nil {
+		return nil, err
+	}
+	configFilePath := configFile.Name()
+
+	encoder := json.NewEncoder(configFile)
+	if err := encoder.Encode(cfg); err != nil {
+		configFile.Close()
+		os.Remove(configFilePath)
+		return nil, err
+	}
+	configFile.Close()
+
+	finalArgs := []string{"-config", configFilePath}
+	finalArgs = append(finalArgs, args...)
+	cmd := exec.Command(cliqueAgentBin, finalArgs...)
+	if err := cmd.Start(); err != nil {
+		os.Remove(configFilePath)
+		return nil, err
+	}
+
+	return runner.NewClqProcess(cmd.Process, cfg, configFilePath), nil
 }

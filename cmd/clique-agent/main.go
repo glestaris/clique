@@ -7,17 +7,16 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+
+	"github.com/glestaris/ice-clique/config"
 )
 
 var (
 	logger *log.Logger
-	config *Config
+	cfg    config.Config
 
 	configPath = flag.String("config", "", "The configuration file path")
 )
-
-type Config struct {
-}
 
 func main() {
 	logger = log.New(os.Stdout, "clique-agent", 0)
@@ -26,15 +25,9 @@ func main() {
 	if *configPath == "" {
 		exit("`-config` option is required", 1)
 	}
-
-	configContents, err := ioutil.ReadFile(*configPath)
+	_, err := parseConfig(*configPath)
 	if err != nil {
-		exit(fmt.Sprintf("failed to open file '%s': %s", *configPath, err), 1)
-	}
-
-	config = new(Config)
-	if err := json.Unmarshal(configContents, &config); err != nil {
-		exit(fmt.Sprintf("failed to parse file '%s': %s", *configPath, err), 1)
+		exit(err.Error(), 1)
 	}
 
 	log.Print("iCE Clique Agent")
@@ -43,4 +36,28 @@ func main() {
 func exit(msg string, exitCode int) {
 	logger.Fatal(msg)
 	os.Exit(exitCode)
+}
+
+func parseConfig(configPath string) (config.Config, error) {
+	configContents, err := ioutil.ReadFile(configPath)
+	if err != nil {
+		return config.Config{}, fmt.Errorf("failed to open file '%s': %s", configPath, err)
+	}
+
+	var cfg config.Config
+	if err := json.Unmarshal(configContents, &cfg); err != nil {
+		return config.Config{}, fmt.Errorf("failed to parse file '%s': %s", configPath, err)
+	}
+
+	if err := validateConfig(cfg); err != nil {
+		return config.Config{}, fmt.Errorf(
+			"invalid configuration file '%s': %s", configPath, err,
+		)
+	}
+
+	return cfg, nil
+}
+
+func validateConfig(cfg config.Config) error {
+	return nil
 }
