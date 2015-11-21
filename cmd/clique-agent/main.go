@@ -1,11 +1,8 @@
 package main
 
 import (
-	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/signal"
@@ -29,7 +26,7 @@ func main() {
 	if *configPath == "" {
 		exit("`-config` option is required", 1)
 	}
-	cfg, err := parseConfig(*configPath)
+	cfg, err := config.NewConfig(*configPath)
 	if err != nil {
 		exit(err.Error(), 1)
 	}
@@ -56,32 +53,4 @@ func main() {
 func exit(msg string, exitCode int) {
 	logger.Fatal(msg)
 	os.Exit(exitCode)
-}
-
-func parseConfig(configPath string) (config.Config, error) {
-	configContents, err := ioutil.ReadFile(configPath)
-	if err != nil {
-		return config.Config{}, fmt.Errorf("failed to open file '%s': %s", configPath, err)
-	}
-
-	var cfg config.Config
-	if err := json.Unmarshal(configContents, &cfg); err != nil {
-		return config.Config{}, fmt.Errorf("failed to parse file '%s': %s", configPath, err)
-	}
-
-	if err := validateConfig(cfg); err != nil {
-		return config.Config{}, fmt.Errorf(
-			"invalid configuration file '%s': %s", configPath, err,
-		)
-	}
-
-	return cfg, nil
-}
-
-func validateConfig(cfg config.Config) error {
-	if cfg.TransferPort == 0 {
-		return errors.New("transfer port is not defined")
-	}
-
-	return nil
 }
