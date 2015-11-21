@@ -4,10 +4,12 @@ import (
 	"os"
 
 	"github.com/glestaris/ice-clique/config"
+	"github.com/onsi/gomega/gbytes"
 )
 
 type ClqProcess struct {
 	Process       *os.Process
+	Buffer        *gbytes.Buffer
 	Config        config.Config
 	ConfigDirPath string
 }

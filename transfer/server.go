@@ -6,29 +6,46 @@ import (
 	"net"
 	"sync"
 	"time"
+
+	"github.com/Sirupsen/logrus"
 )
 
 type server struct {
 	listener net.Listener
 
-	inProgress   bool
+	inProgress bool
+	paused     bool
+
 	lastTransfer TransferResults
 
-	cond *sync.Cond
-	lock *sync.Mutex
+	cond     *sync.Cond
+	condLock *sync.Mutex
+	lock     *sync.Mutex
+
+	logger *logrus.Logger
 }
 
-func NewServer(port uint16) (Server, error) {
+func NewServer(logger *logrus.Logger, port uint16) (Server, error) {
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		return nil, fmt.Errorf("listening to port %d: %s", port, err)
 	}
+	logger.Infof("Listening to port %d", port)
 
-	lock := new(sync.Mutex)
+	condLock := new(sync.Mutex)
 	return &server{
 		listener: listener,
-		lock:     lock,
-		cond:     sync.NewCond(lock),
+
+		inProgress: false,
+		paused:     false,
+
+		lastTransfer: TransferResults{},
+
+		cond:     sync.NewCond(condLock),
+		condLock: condLock,
+		lock:     new(sync.Mutex),
+
+		logger: logger,
 	}, nil
 }
 
@@ -41,17 +58,42 @@ func (s *server) Serve() {
 
 		s.lock.Lock()
 		inProgress := s.inProgress
-		if !inProgress {
+		paused := s.paused
+		if !inProgress && !paused {
 			s.inProgress = true
 		}
 		s.lock.Unlock()
 
-		if inProgress {
+		if paused || inProgress {
 			go s.handleBusy(conn)
 		} else {
 			go s.handleTransfer(conn)
 		}
 	}
+}
+
+func (s *server) Pause() {
+	s.lock.Lock()
+	s.paused = true
+	if !s.inProgress {
+		s.lock.Unlock()
+		return
+	}
+
+	s.condLock.Lock()
+	s.lock.Unlock()
+	defer s.condLock.Unlock()
+	s.cond.Wait()
+
+	return
+}
+
+func (s *server) Resume() {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	s.paused = false
+
+	return
 }
 
 func (s *server) Close() error {
@@ -63,10 +105,12 @@ func (s *server) Close() error {
 }
 
 func (s *server) LastTrasfer() TransferResults {
+	s.condLock.Lock()
+	defer s.condLock.Unlock()
+	s.cond.Wait()
+
 	s.lock.Lock()
 	defer s.lock.Unlock()
-
-	s.cond.Wait()
 	return s.lastTransfer
 }
 
@@ -78,16 +122,22 @@ func (s *server) handleBusy(conn net.Conn) {
 
 func (s *server) handleTransfer(conn net.Conn) {
 	defer conn.Close()
+	s.logger.Infof("Handling a transfer from %s", conn.RemoteAddr().String())
 
 	conn.Write([]byte("ok"))
 
 	res := s.readData(conn)
+	s.logger.WithFields(logrus.Fields{
+		"duration":   res.Duration,
+		"checksum":   res.Checksum,
+		"bytes_sent": res.BytesSent,
+	}).Info("Incoming transfer is completed")
 
 	s.lock.Lock()
 	s.lastTransfer = res
 	s.inProgress = false
-	s.cond.Signal()
 	s.lock.Unlock()
+	s.cond.Broadcast()
 }
 
 func (s *server) readData(conn net.Conn) TransferResults {

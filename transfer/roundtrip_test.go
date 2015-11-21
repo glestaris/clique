@@ -1,56 +1,19 @@
 package transfer_test
 
 import (
-	"fmt"
 	"net"
 	"time"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/glestaris/ice-clique/transfer"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Server", func() {
-	Describe("Serve", func() {
-		Context("when the port is too low", func() {
-			It("should return an error", func() {
-				_, err := transfer.NewServer(16)
-				Expect(err).To(HaveOccurred())
-			})
-		})
-	})
-
-	Describe("Close", func() {
-		Context("when close is called twice", func() {
-			It("should return an error the second time", func() {
-				server, err := transfer.NewServer(8080)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(server.Close()).To(Succeed())
-				Expect(server.Close()).NotTo(Succeed())
-			})
-		})
-	})
-})
-
-var _ = Describe("Client", func() {
-	Describe("Transfer", func() {
-		Context("when there is no server", func() {
-			It("should return an error", func() {
-				client := transfer.NewClient()
-				spec := transfer.TransferSpec{
-					IP:   net.ParseIP("127.0.0.1"),
-					Port: 12121,
-				}
-				_, err := client.Transfer(spec)
-				Expect(err).To(HaveOccurred())
-			})
-		})
-	})
-})
-
 var _ = Describe("Roundtrip", func() {
 	var (
+		logger     *logrus.Logger
 		port       uint16
 		transferer transfer.Transferer
 		server     transfer.Server
@@ -58,15 +21,21 @@ var _ = Describe("Roundtrip", func() {
 	)
 
 	BeforeEach(func() {
+		logger = &logrus.Logger{
+			Out:       GinkgoWriter,
+			Level:     logrus.DebugLevel,
+			Formatter: new(logrus.TextFormatter),
+		}
+
 		port = 5000 + uint16(GinkgoParallelNode())
 
-		transferer = transfer.NewClient()
+		transferer = transfer.NewClient(logger)
 	})
 
 	JustBeforeEach(func() {
 		var err error
 
-		server, err = transfer.NewServer(port)
+		server, err = transfer.NewServer(logger, port)
 		Expect(err).NotTo(HaveOccurred())
 		serverCh = make(chan bool)
 
@@ -81,12 +50,6 @@ var _ = Describe("Roundtrip", func() {
 	AfterEach(func() {
 		Expect(server.Close()).To(Succeed())
 		Eventually(serverCh).Should(BeClosed())
-	})
-
-	It("should listen to the provided port", func() {
-		conn, err := net.Dial("tcp", fmt.Sprintf("127.0.0.1:%d", port))
-		Expect(err).NotTo(HaveOccurred())
-		Expect(conn.Close()).To(Succeed())
 	})
 
 	It("should succeed in transfering to a running server", func() {
@@ -149,4 +112,38 @@ var _ = Describe("Roundtrip", func() {
 
 		close(done)
 	}, 5.0)
+
+	Describe("Server#Pause", func() {
+		It("should return an error", func() {
+			server.Pause()
+
+			spec := transfer.TransferSpec{
+				IP:   net.ParseIP("127.0.0.1"),
+				Port: port,
+			}
+
+			_, err := transferer.Transfer(spec)
+			Expect(err).To(HaveOccurred())
+		})
+
+		Describe("Server#Resume", func() {
+			Context("when the server is paused", func() {
+				BeforeEach(func() {
+					server.Pause()
+				})
+
+				It("should return ok", func() {
+					server.Resume()
+
+					spec := transfer.TransferSpec{
+						IP:   net.ParseIP("127.0.0.1"),
+						Port: port,
+					}
+
+					_, err := transferer.Transfer(spec)
+					Expect(err).NotTo(HaveOccurred())
+				})
+			})
+		})
+	})
 })

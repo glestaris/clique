@@ -8,7 +8,9 @@ import (
 )
 
 type Config struct {
-	TransferPort uint16 `json:"transfer_port"`
+	TransferPort     uint16   `json:"transfer_port"`
+	RemoteHosts      []string `json:"remote_hosts"`
+	InitTransferSize uint32   `json:"init_transfer_size"`
 }
 
 func NewConfig(configPath string) (Config, error) {
@@ -28,7 +30,7 @@ func NewConfig(configPath string) (Config, error) {
 		)
 	}
 
-	return cfg, nil
+	return applyDefaults(cfg), nil
 }
 
 func validateConfig(cfg Config) error {
@@ -37,4 +39,12 @@ func validateConfig(cfg Config) error {
 	}
 
 	return nil
+}
+
+func applyDefaults(cfg Config) Config {
+	if cfg.InitTransferSize == 0 {
+		cfg.InitTransferSize = 20 * 1024 * 1024
+	}
+
+	return cfg
 }

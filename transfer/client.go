@@ -7,12 +7,18 @@ import (
 	"hash/crc32"
 	"net"
 	"time"
+
+	"github.com/Sirupsen/logrus"
 )
 
-type client struct{}
+type client struct {
+	logger *logrus.Logger
+}
 
-func NewClient() Transferer {
-	return &client{}
+func NewClient(logger *logrus.Logger) Transferer {
+	return &client{
+		logger: logger,
+	}
 }
 
 func (c *client) Transfer(spec TransferSpec) (TransferResults, error) {
@@ -23,6 +29,7 @@ func (c *client) Transfer(spec TransferSpec) (TransferResults, error) {
 		return TransferResults{}, fmt.Errorf("connecting to the server: %s", err)
 	}
 	defer conn.Close()
+	c.logger.Infof("Starting transfer to %s", conn.RemoteAddr().String())
 
 	if err := c.handshake(conn); err != nil {
 		return TransferResults{}, err
@@ -32,6 +39,11 @@ func (c *client) Transfer(spec TransferSpec) (TransferResults, error) {
 	if err != nil {
 		return TransferResults{}, err
 	}
+	c.logger.WithFields(logrus.Fields{
+		"duration":   res.Duration,
+		"checksum":   res.Checksum,
+		"bytes_sent": res.BytesSent,
+	}).Info("Outgoing transfer is completed")
 
 	return res, nil
 }

@@ -2,6 +2,7 @@ package acceptance_test
 
 import (
 	"encoding/json"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -75,8 +76,8 @@ func startClique(cfg config.Config, args ...string) (*runner.ClqProcess, error) 
 	cmd := exec.Command(cliqueAgentBin, finalArgs...)
 
 	buffer := gbytes.NewBuffer()
-	cmd.Stdout = buffer
-	cmd.Stderr = buffer
+	cmd.Stdout = io.MultiWriter(buffer, GinkgoWriter)
+	cmd.Stderr = io.MultiWriter(buffer, GinkgoWriter)
 
 	if err := cmd.Start(); err != nil {
 		os.Remove(configFilePath)
@@ -85,5 +86,10 @@ func startClique(cfg config.Config, args ...string) (*runner.ClqProcess, error) 
 
 	Eventually(buffer).Should(gbytes.Say("iCE Clique Agent"))
 
-	return runner.NewClqProcess(cmd.Process, cfg, configFilePath), nil
+	return &runner.ClqProcess{
+		Process:       cmd.Process,
+		Buffer:        buffer,
+		Config:        cfg,
+		ConfigDirPath: configFilePath,
+	}, nil
 }

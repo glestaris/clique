@@ -3,7 +3,8 @@
 all: ./clique-agent
 
 test:
-	ginkgo -r -p -race
+	ginkgo -p acceptance
+	ginkgo -r -p -race -skipPackage acceptance
 
 ./clique-agent:
 	go build ./cmd/clique-agent/...
