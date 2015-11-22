@@ -6,7 +6,7 @@ import (
 )
 
 type Server interface {
-	Serve() error
+	Serve()
 	Close() error
 	LastTrasfer() TransferResults
 }

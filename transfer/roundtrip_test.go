@@ -73,7 +73,7 @@ var _ = Describe("Roundtrip", func() {
 		go func(sever transfer.Server, c chan bool) {
 			defer GinkgoRecover()
 
-			Expect(server.Serve()).To(Succeed())
+			server.Serve()
 			close(c)
 		}(server, serverCh)
 	})

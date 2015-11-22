@@ -32,7 +32,7 @@ func NewServer(port uint16) (Server, error) {
 	}, nil
 }
 
-func (s *server) Serve() error {
+func (s *server) Serve() {
 	for {
 		conn, err := s.listener.Accept()
 		if err != nil {
@@ -52,8 +52,6 @@ func (s *server) Serve() error {
 			go s.handleTransfer(conn)
 		}
 	}
-
-	return nil
 }
 
 func (s *server) Close() error {
