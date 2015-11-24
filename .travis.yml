@@ -5,8 +5,9 @@ go:
 before_script:
   - go vet ./...
 install:
+  - go get github.com/tools/godep
+  - godep restore
   - go get github.com/onsi/ginkgo/ginkgo
-  - go get github.com/onsi/gomega
 script:
   - make all
   - make test
