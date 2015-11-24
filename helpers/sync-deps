@@ -1,0 +1,7 @@
+#!/bin/bash
+
+root_path=$(cd $(dirname $BASH_SOURCE)/..; pwd)
+
+cd $root_path
+godep save ./...
+cd -
