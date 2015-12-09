@@ -8,19 +8,19 @@ import (
 )
 
 type FakeTask struct {
-	RunStub        func()
-	runMutex       sync.RWMutex
-	runArgsForCall []struct{}
+	RunStub             func()
+	runMutex            sync.RWMutex
+	runArgsForCall      []struct{}
 	PriorityStub        func() int
 	priorityMutex       sync.RWMutex
 	priorityArgsForCall []struct{}
-	priorityReturns struct {
+	priorityReturns     struct {
 		result1 int
 	}
 	StateStub        func() scheduler.TaskState
 	stateMutex       sync.RWMutex
 	stateArgsForCall []struct{}
-	stateReturns struct {
+	stateReturns     struct {
 		result1 scheduler.TaskState
 	}
 }

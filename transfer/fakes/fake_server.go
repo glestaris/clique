@@ -8,25 +8,25 @@ import (
 )
 
 type FakeServer struct {
-	ServeStub        func()
-	serveMutex       sync.RWMutex
-	serveArgsForCall []struct{}
-	PauseStub        func()
-	pauseMutex       sync.RWMutex
-	pauseArgsForCall []struct{}
+	ServeStub         func()
+	serveMutex        sync.RWMutex
+	serveArgsForCall  []struct{}
+	PauseStub         func()
+	pauseMutex        sync.RWMutex
+	pauseArgsForCall  []struct{}
 	ResumeStub        func()
 	resumeMutex       sync.RWMutex
 	resumeArgsForCall []struct{}
-	CloseStub        func() error
-	closeMutex       sync.RWMutex
-	closeArgsForCall []struct{}
-	closeReturns struct {
+	CloseStub         func() error
+	closeMutex        sync.RWMutex
+	closeArgsForCall  []struct{}
+	closeReturns      struct {
 		result1 error
 	}
 	LastTrasferStub        func() transfer.TransferResults
 	lastTrasferMutex       sync.RWMutex
 	lastTrasferArgsForCall []struct{}
-	lastTrasferReturns struct {
+	lastTrasferReturns     struct {
 		result1 transfer.TransferResults
 	}
 }
