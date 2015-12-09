@@ -11,6 +11,29 @@
 			"Rev": "f92b7950b372b1db80bd3527e4d40e42555fe6c2"
 		},
 		{
+			"ImportPath": "github.com/labstack/echo",
+			"Comment": "v1.3-3-g5cd194b",
+			"Rev": "5cd194b6b073541a5ab6c80d7ba8162be373d007"
+		},
+		{
+			"ImportPath": "github.com/labstack/gommon/color",
+			"Comment": "v0.0.3-23-g2ebf6ac",
+			"Rev": "2ebf6acaf35a9c52c984656ba9f738080aaf097d"
+		},
+		{
+			"ImportPath": "github.com/labstack/gommon/log",
+			"Comment": "v0.0.3-23-g2ebf6ac",
+			"Rev": "2ebf6acaf35a9c52c984656ba9f738080aaf097d"
+		},
+		{
+			"ImportPath": "github.com/mattn/go-colorable",
+			"Rev": "3dac7b4f76f6e17fb39b768b89e3783d16e237fe"
+		},
+		{
+			"ImportPath": "github.com/mattn/go-isatty",
+			"Rev": "3f7a6730f55096ff7cd34816f520d9f4517e95ea"
+		},
+		{
 			"ImportPath": "github.com/onsi/ginkgo",
 			"Comment": "v1.2.0-22-g39d2c24",
 			"Rev": "39d2c24f8a92c88f7e7f4d8ec6c80d3cc8f5ac65"
@@ -23,6 +46,18 @@
 		{
 			"ImportPath": "github.com/pivotal-golang/clock",
 			"Rev": "3fd3c1944c59d9742e1cd333672181cd1a6f9fa0"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "d5cd7348bfebdf7dbb6dbb18fa488525f9024293"
+		},
+		{
+			"ImportPath": "golang.org/x/net/http2",
+			"Rev": "d5cd7348bfebdf7dbb6dbb18fa488525f9024293"
+		},
+		{
+			"ImportPath": "golang.org/x/net/websocket",
+			"Rev": "d5cd7348bfebdf7dbb6dbb18fa488525f9024293"
 		}
 	]
 }
