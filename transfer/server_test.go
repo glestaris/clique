@@ -35,7 +35,7 @@ var _ = Describe("Server", func() {
 	Describe("Serve", func() {
 		var (
 			port     uint16
-			server   transfer.Server
+			server   *transfer.Server
 			serverCh chan struct{}
 		)
 
@@ -91,10 +91,10 @@ var _ = Describe("Server", func() {
 			})
 		})
 
-		Describe("Pause", func() {
+		Describe("Interrupt", func() {
 			Context("when the server is paused", func() {
 				BeforeEach(func() {
-					server.Pause()
+					server.Interrupt()
 				})
 
 				It("should make server return busy for transfers", func() {
@@ -123,7 +123,7 @@ var _ = Describe("Server", func() {
 					pauseCh := make(chan bool, 1)
 					go func() {
 						pauseCh <- true
-						server.Pause()
+						server.Interrupt()
 						close(pauseCh)
 					}()
 
@@ -139,7 +139,7 @@ var _ = Describe("Server", func() {
 			Describe("Resume", func() {
 				Context("when a server is paused", func() {
 					BeforeEach(func() {
-						server.Pause()
+						server.Interrupt()
 					})
 
 					It("should make server process requests again", func() {

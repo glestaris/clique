@@ -15,8 +15,8 @@ var _ = Describe("Roundtrip", func() {
 	var (
 		logger     *logrus.Logger
 		port       uint16
-		transferer transfer.Transferer
-		server     transfer.Server
+		transferer *transfer.Transferer
+		server     *transfer.Server
 		serverCh   chan bool
 	)
 
@@ -29,7 +29,7 @@ var _ = Describe("Roundtrip", func() {
 
 		port = 5000 + uint16(GinkgoParallelNode())
 
-		transferer = transfer.NewClient(logger)
+		transferer = &transfer.Transferer{Logger: logger}
 	})
 
 	JustBeforeEach(func() {
@@ -39,7 +39,7 @@ var _ = Describe("Roundtrip", func() {
 		Expect(err).NotTo(HaveOccurred())
 		serverCh = make(chan bool)
 
-		go func(sever transfer.Server, c chan bool) {
+		go func(sever *transfer.Server, c chan bool) {
 			defer GinkgoRecover()
 
 			server.Serve()
@@ -113,9 +113,9 @@ var _ = Describe("Roundtrip", func() {
 		close(done)
 	}, 5.0)
 
-	Describe("Server#Pause", func() {
+	Describe("Server#Interrupt", func() {
 		It("should return an error", func() {
-			server.Pause()
+			server.Interrupt()
 
 			spec := transfer.TransferSpec{
 				IP:   net.ParseIP("127.0.0.1"),
@@ -129,7 +129,7 @@ var _ = Describe("Roundtrip", func() {
 		Describe("Server#Resume", func() {
 			Context("when the server is paused", func() {
 				BeforeEach(func() {
-					server.Pause()
+					server.Interrupt()
 				})
 
 				It("should return ok", func() {

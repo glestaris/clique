@@ -33,12 +33,6 @@ type Task interface {
 	State() TaskState
 }
 
-type Scheduler interface {
-	Schedule(task Task)
-	Run()
-	Stop() error
-}
-
 //go:generate counterfeiter . TaskSelector
 type TaskSelector interface {
 	SelectTask([]Task) Task
@@ -52,7 +46,7 @@ const (
 	schedulerStateStopping
 )
 
-type scheduler struct {
+type Scheduler struct {
 	taskSelector TaskSelector
 
 	csSleep time.Duration
@@ -72,8 +66,8 @@ func NewScheduler(
 	taskSelector TaskSelector,
 	csSleep time.Duration,
 	csClock clock.Clock,
-) Scheduler {
-	return &scheduler{
+) *Scheduler {
+	return &Scheduler{
 		taskSelector: taskSelector,
 
 		csSleep: csSleep,
@@ -89,7 +83,7 @@ func NewScheduler(
 	}
 }
 
-func (s *scheduler) Schedule(task Task) {
+func (s *Scheduler) Schedule(task Task) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -100,7 +94,7 @@ func (s *scheduler) Schedule(task Task) {
 	s.tasksList = append(s.tasksList, task)
 }
 
-func (s *scheduler) Run() {
+func (s *Scheduler) Run() {
 	s.setState(schedulerStateRunning)
 
 	for {
@@ -134,42 +128,42 @@ func (s *scheduler) Run() {
 	s.setState(schedulerStateIdle)
 }
 
-func (s *scheduler) setState(schedulerState schedulerState) {
+func (s *Scheduler) setState(schedulerState schedulerState) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
 	s.state = schedulerState
 }
 
-func (s *scheduler) isRunning() bool {
+func (s *Scheduler) isRunning() bool {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
 	return s.state == schedulerStateRunning
 }
 
-func (s *scheduler) isStopping() bool {
+func (s *Scheduler) isStopping() bool {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
 	return s.state == schedulerStateStopping
 }
 
-func (s *scheduler) tasks() []Task {
+func (s *Scheduler) tasks() []Task {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
 	return s.tasksList
 }
 
-func (s *scheduler) tasksLen() int {
+func (s *Scheduler) tasksLen() int {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
 	return len(s.tasksList)
 }
 
-func (s *scheduler) removeTask(task Task) {
+func (s *Scheduler) removeTask(task Task) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -196,7 +190,7 @@ func (s *scheduler) removeTask(task Task) {
 	}
 }
 
-func (s *scheduler) Stop() error {
+func (s *Scheduler) Stop() error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 

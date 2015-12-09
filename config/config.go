@@ -9,6 +9,7 @@ import (
 
 type Config struct {
 	TransferPort     uint16   `json:"transfer_port"`
+	APIPort          uint16   `json:"api_port"`
 	RemoteHosts      []string `json:"remote_hosts"`
 	InitTransferSize uint32   `json:"init_transfer_size"`
 }

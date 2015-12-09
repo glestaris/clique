@@ -11,7 +11,10 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/glestaris/ice-clique/api"
+	"github.com/glestaris/ice-clique/api/registry"
 	"github.com/glestaris/ice-clique/config"
+	"github.com/glestaris/ice-clique/dispatcher"
 	"github.com/glestaris/ice-clique/scheduler"
 	"github.com/glestaris/ice-clique/transfer"
 	"github.com/pivotal-golang/clock"
@@ -45,21 +48,27 @@ func main() {
 		logger.Fatal(err.Error())
 	}
 
-	server := setupServer(logger, cfg)
-
-	sched := setupScheduler(logger, cfg)
-	for _, t := range transferTasks(logger, cfg, server) {
-		sched.Schedule(t)
-	}
+	transferServer := setupTransferServer(logger, cfg)
+	transferer := setupTransferer(logger)
+	sched := setupScheduler(logger)
+	apiRegistry := setupAPIRegistry()
+	dsptchr := setupDispatcher(
+		logger, sched, transferServer, transferer, apiRegistry,
+	)
+	createTransferTasks(logger, cfg, dsptchr)
+	apiServer := setupAPIServer(cfg, apiRegistry, dsptchr)
 
 	sigTermCh := make(chan os.Signal)
 	signal.Notify(sigTermCh, os.Interrupt)
 	signal.Notify(sigTermCh, syscall.SIGTERM)
 	go func() {
 		<-sigTermCh
-		server.Close()
+		transferServer.Close()
 		sched.Stop()
-		logger.Info("Exitting ice-clique...")
+		if apiServer != nil {
+			apiServer.Close()
+		}
+		logger.Info("Exitting clique-agent...")
 	}()
 
 	logger.Info("iCE Clique Agent")
@@ -68,45 +77,78 @@ func main() {
 	wg.Add(2)
 
 	go func() {
-		server.Serve()
+		transferServer.Serve()
 		wg.Done()
 	}()
 	go func() {
 		sched.Run()
 		wg.Done()
 	}()
+	if apiServer != nil {
+		wg.Add(1)
+		go func() {
+			apiServer.Serve()
+			wg.Done()
+		}()
+	}
 
 	wg.Wait()
 }
 
-func setupServer(logger *logrus.Logger, cfg config.Config) transfer.Server {
+func setupTransferServer(logger *logrus.Logger, cfg config.Config) *transfer.Server {
 	server, err := transfer.NewServer(logger, cfg.TransferPort)
 	if err != nil {
-		logger.Fatalf("Setting up server: %s", err.Error())
+		logger.Fatalf("Setting up transfer server: %s", err.Error())
 	}
 
 	return server
 }
 
-func setupTransferer(
-	logger *logrus.Logger,
-	cfg config.Config,
-) transfer.Transferer {
-	return transfer.NewClient(logger)
+func setupTransferer(logger *logrus.Logger) *transfer.Transferer {
+	return &transfer.Transferer{Logger: logger}
 }
 
-func transferTasks(
+func setupScheduler(logger *logrus.Logger) *scheduler.Scheduler {
+	return scheduler.NewScheduler(
+		logger,
+		// scheduling algorithm
+		&scheduler.LotteryTaskSelector{Rand: scheduler.NewCryptoUIG()},
+		// sleep between tasks
+		time.Second,
+		clock.NewClock(),
+	)
+}
+
+func setupAPIRegistry() *registry.Registry {
+	return registry.NewRegistry()
+}
+
+func setupDispatcher(
+	logger *logrus.Logger,
+	scheduler *scheduler.Scheduler,
+	transferServer *transfer.Server,
+	transferer *transfer.Transferer,
+	apiRegistry *registry.Registry,
+) *dispatcher.Dispatcher {
+	return &dispatcher.Dispatcher{
+		Scheduler:      scheduler,
+		TransferServer: transferServer,
+		Transferer:     transferer,
+		ApiRegistry:    apiRegistry,
+		Logger:         logger,
+	}
+}
+
+func createTransferTasks(
 	logger *logrus.Logger,
 	cfg config.Config,
-	server transfer.Server,
-) []scheduler.Task {
+	dsptchr *dispatcher.Dispatcher,
+) {
 	if len(cfg.RemoteHosts) == 0 {
-		return []scheduler.Task{}
+		return
 	}
 
-	tasks := make([]scheduler.Task, len(cfg.RemoteHosts))
-
-	for i, remoteHost := range cfg.RemoteHosts {
+	for _, remoteHost := range cfg.RemoteHosts {
 		host, portStr, err := net.SplitHostPort(remoteHost)
 		if err != nil {
 			logger.Fatalf("Parsing remote host `%s`: %s", remoteHost, err.Error())
@@ -119,34 +161,26 @@ func transferTasks(
 			)
 		}
 
-		tasks[i] = &transfer.TransferTask{
-			Server:     server,
-			Transferer: setupTransferer(logger, cfg),
-			TransferSpec: transfer.TransferSpec{
-				IP:   net.ParseIP(host),
-				Port: uint16(port),
-				Size: cfg.InitTransferSize,
-			},
-			DesiredPriority: 10,
-			// logger
-			Logger: logger,
-		}
+		dsptchr.Create(api.TransferSpec{
+			IP:   net.ParseIP(host),
+			Port: uint16(port),
+			Size: cfg.InitTransferSize,
+		})
 	}
-
-	return tasks
 }
 
-func setupScheduler(
-	logger *logrus.Logger,
+func setupAPIServer(
 	cfg config.Config,
-) scheduler.Scheduler {
-	return scheduler.NewScheduler(
-		// logger
-		logger,
-		// scheduling algorithm
-		&scheduler.LotteryTaskSelector{Rand: scheduler.NewCryptoUIG()},
-		// sleep between tasks
-		time.Second,
-		clock.NewClock(),
+	reg *registry.Registry,
+	dsptchr *dispatcher.Dispatcher,
+) *api.Server {
+	if cfg.APIPort == 0 {
+		return nil
+	}
+
+	return api.NewServer(
+		cfg.APIPort,
+		reg,
+		dsptchr,
 	)
 }

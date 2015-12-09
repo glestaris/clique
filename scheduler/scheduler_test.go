@@ -14,7 +14,7 @@ import (
 
 var _ = Describe("Scheduler", func() {
 	var (
-		sched        scheduler.Scheduler
+		sched        *scheduler.Scheduler
 		logger       *logrus.Logger
 		taskSelector *fakes.FakeTaskSelector
 		csSleep      time.Duration
@@ -74,7 +74,7 @@ var _ = Describe("Scheduler", func() {
 
 				schedCh = make(chan struct{})
 
-				go func(sched scheduler.Scheduler, c chan struct{}) {
+				go func(sched *scheduler.Scheduler, c chan struct{}) {
 					sched.Run()
 					close(c)
 				}(sched, schedCh)
@@ -108,7 +108,7 @@ var _ = Describe("Scheduler", func() {
 		})
 
 		JustBeforeEach(func() {
-			go func(sched scheduler.Scheduler, c chan struct{}) {
+			go func(sched *scheduler.Scheduler, c chan struct{}) {
 				defer GinkgoRecover()
 				Expect(sched.Run).NotTo(Panic())
 				close(c)

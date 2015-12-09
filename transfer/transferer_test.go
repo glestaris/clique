@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Client", func() {
+var _ = Describe("Transferer", func() {
 	var logger *logrus.Logger
 
 	BeforeEach(func() {
@@ -24,12 +24,12 @@ var _ = Describe("Client", func() {
 	Describe("Transfer", func() {
 		Context("when there is no server", func() {
 			It("should return an error", func() {
-				client := transfer.NewClient(logger)
+				transferer := &transfer.Transferer{Logger: logger}
 				spec := transfer.TransferSpec{
 					IP:   net.ParseIP("127.0.0.1"),
 					Port: 12121,
 				}
-				_, err := client.Transfer(spec)
+				_, err := transferer.Transfer(spec)
 				Expect(err).To(HaveOccurred())
 			})
 		})

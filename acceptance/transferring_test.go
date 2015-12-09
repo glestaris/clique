@@ -17,21 +17,23 @@ import (
 
 var _ = Describe("Single transferring", func() {
 	var (
-		client transfer.Transferer
-		proc   *runner.ClqProcess
-		port   uint16
+		transferer *transfer.Transferer
+		proc       *runner.ClqProcess
+		port       uint16
 	)
 
 	BeforeEach(func() {
 		var err error
 
-		client = transfer.NewClient(&logrus.Logger{
-			Out:       GinkgoWriter,
-			Formatter: new(logrus.TextFormatter),
-			Level:     logrus.InfoLevel,
-		})
+		transferer = &transfer.Transferer{
+			Logger: &logrus.Logger{
+				Out:       GinkgoWriter,
+				Formatter: new(logrus.TextFormatter),
+				Level:     logrus.InfoLevel,
+			},
+		}
 
-		port = 5000 + uint16(GinkgoParallelNode())
+		port = uint16(5000 + GinkgoParallelNode())
 
 		proc, err = startClique(config.Config{
 			TransferPort: port,
@@ -45,7 +47,7 @@ var _ = Describe("Single transferring", func() {
 	})
 
 	It("should accept transfers", func() {
-		_, err := client.Transfer(transfer.TransferSpec{
+		_, err := transferer.Transfer(transfer.TransferSpec{
 			IP:   net.ParseIP("127.0.0.1"),
 			Port: port,
 			Size: 10 * 1024 * 1024,
@@ -64,7 +66,7 @@ var _ = Describe("Single transferring", func() {
 
 				c <- "started"
 
-				_, err := client.Transfer(transfer.TransferSpec{
+				_, err := transferer.Transfer(transfer.TransferSpec{
 					IP:   net.ParseIP("127.0.0.1"),
 					Port: port,
 					Size: 20 * 1024 * 1024,
@@ -79,7 +81,7 @@ var _ = Describe("Single transferring", func() {
 			Eventually(transferStateCh).Should(Receive())
 			time.Sleep(time.Millisecond * 200) // synchronizing the requests
 
-			_, err := client.Transfer(transfer.TransferSpec{
+			_, err := transferer.Transfer(transfer.TransferSpec{
 				IP:   net.ParseIP("127.0.0.1"),
 				Port: port,
 				Size: 10 * 1024 * 1024,
@@ -101,19 +103,19 @@ var _ = Describe("Clique", func() {
 		var err error
 
 		hosts = []string{
-			fmt.Sprintf("127.0.0.1:%d", 6001+GinkgoParallelNode()),
-			fmt.Sprintf("127.0.0.1:%d", 6002+GinkgoParallelNode()),
+			fmt.Sprintf("127.0.0.1:%d", 5000+GinkgoParallelNode()),
+			fmt.Sprintf("127.0.0.1:%d", 5100+GinkgoParallelNode()),
 		}
 
 		procA, err = startClique(config.Config{
-			TransferPort:     6001 + uint16(GinkgoParallelNode()),
+			TransferPort:     uint16(5000 + GinkgoParallelNode()),
 			RemoteHosts:      []string{hosts[1]},
 			InitTransferSize: 1 * 1024 * 1024,
 		}, "-debug")
 		Expect(err).NotTo(HaveOccurred())
 
 		procB, err = startClique(config.Config{
-			TransferPort:     6002 + uint16(GinkgoParallelNode()),
+			TransferPort:     uint16(5100 + GinkgoParallelNode()),
 			RemoteHosts:      []string{hosts[0]},
 			InitTransferSize: 1 * 1024 * 1024,
 		}, "-debug")
@@ -133,14 +135,14 @@ var _ = Describe("Clique", func() {
 		Expect(procACont).To(ContainSubstring("Incoming transfer is completed"))
 		Expect(procACont).To(ContainSubstring("Outgoing transfer is completed"))
 		Expect(procACont).To(ContainSubstring(
-			fmt.Sprintf("127.0.0.1:%d", 6002+GinkgoParallelNode()),
+			fmt.Sprintf("127.0.0.1:%d", 5100+GinkgoParallelNode()),
 		))
 
 		procBCont := procB.Buffer.Contents()
 		Expect(procBCont).To(ContainSubstring("Incoming transfer is completed"))
 		Expect(procBCont).To(ContainSubstring("Outgoing transfer is completed"))
 		Expect(procBCont).To(ContainSubstring(
-			fmt.Sprintf("127.0.0.1:%d", 6001+GinkgoParallelNode()),
+			fmt.Sprintf("127.0.0.1:%d", 5000+GinkgoParallelNode()),
 		))
 	})
 })

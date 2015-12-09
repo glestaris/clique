@@ -57,7 +57,7 @@ func TestAcceptance(t *testing.T) {
 }
 
 func startClique(cfg config.Config, args ...string) (*runner.ClqProcess, error) {
-	configFile, err := ioutil.TempFile("", "ice-clique-config")
+	configFile, err := ioutil.TempFile("", "clique-agent-config")
 	if err != nil {
 		return nil, err
 	}

@@ -11,17 +11,11 @@ import (
 	"github.com/Sirupsen/logrus"
 )
 
-type client struct {
-	logger *logrus.Logger
+type Transferer struct {
+	Logger *logrus.Logger
 }
 
-func NewClient(logger *logrus.Logger) Transferer {
-	return &client{
-		logger: logger,
-	}
-}
-
-func (c *client) Transfer(spec TransferSpec) (TransferResults, error) {
+func (c *Transferer) Transfer(spec TransferSpec) (TransferResults, error) {
 	conn, err := net.Dial(
 		"tcp", fmt.Sprintf("%s:%d", spec.IP.String(), spec.Port),
 	)
@@ -29,7 +23,7 @@ func (c *client) Transfer(spec TransferSpec) (TransferResults, error) {
 		return TransferResults{}, fmt.Errorf("connecting to the server: %s", err)
 	}
 	defer conn.Close()
-	c.logger.Infof("Starting transfer to %s", conn.RemoteAddr().String())
+	c.Logger.Infof("Starting transfer to %s", conn.RemoteAddr().String())
 
 	if err := c.handshake(conn); err != nil {
 		return TransferResults{}, err
@@ -39,7 +33,7 @@ func (c *client) Transfer(spec TransferSpec) (TransferResults, error) {
 	if err != nil {
 		return TransferResults{}, err
 	}
-	c.logger.WithFields(logrus.Fields{
+	c.Logger.WithFields(logrus.Fields{
 		"duration":   res.Duration,
 		"checksum":   res.Checksum,
 		"bytes_sent": res.BytesSent,
@@ -48,7 +42,7 @@ func (c *client) Transfer(spec TransferSpec) (TransferResults, error) {
 	return res, nil
 }
 
-func (c *client) handshake(conn net.Conn) error {
+func (c *Transferer) handshake(conn net.Conn) error {
 	msgBytes := make([]byte, 16)
 	n, _ := conn.Read(msgBytes)
 
@@ -63,7 +57,7 @@ func (c *client) handshake(conn net.Conn) error {
 	}
 }
 
-func (c *client) randomBlock(size uint16) []byte {
+func (c *Transferer) randomBlock(size uint16) []byte {
 	data := make([]byte, size)
 
 	rand.Read(data)
@@ -71,7 +65,7 @@ func (c *client) randomBlock(size uint16) []byte {
 	return data
 }
 
-func (c *client) sendData(
+func (c *Transferer) sendData(
 	conn net.Conn,
 	size uint32,
 	block []byte,

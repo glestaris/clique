@@ -10,7 +10,7 @@ import (
 	"github.com/Sirupsen/logrus"
 )
 
-type server struct {
+type Server struct {
 	listener net.Listener
 
 	inProgress bool
@@ -25,7 +25,7 @@ type server struct {
 	logger *logrus.Logger
 }
 
-func NewServer(logger *logrus.Logger, port uint16) (Server, error) {
+func NewServer(logger *logrus.Logger, port uint16) (*Server, error) {
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		return nil, fmt.Errorf("listening to port %d: %s", port, err)
@@ -33,7 +33,7 @@ func NewServer(logger *logrus.Logger, port uint16) (Server, error) {
 	logger.Infof("Listening to port %d", port)
 
 	condLock := new(sync.Mutex)
-	return &server{
+	return &Server{
 		listener: listener,
 
 		inProgress: false,
@@ -49,7 +49,7 @@ func NewServer(logger *logrus.Logger, port uint16) (Server, error) {
 	}, nil
 }
 
-func (s *server) Serve() {
+func (s *Server) Serve() {
 	for {
 		conn, err := s.listener.Accept()
 		if err != nil {
@@ -72,7 +72,7 @@ func (s *server) Serve() {
 	}
 }
 
-func (s *server) Pause() {
+func (s *Server) Interrupt() {
 	s.lock.Lock()
 	s.paused = true
 	if !s.inProgress {
@@ -84,11 +84,9 @@ func (s *server) Pause() {
 	s.lock.Unlock()
 	defer s.condLock.Unlock()
 	s.cond.Wait()
-
-	return
 }
 
-func (s *server) Resume() {
+func (s *Server) Resume() {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	s.paused = false
@@ -96,7 +94,7 @@ func (s *server) Resume() {
 	return
 }
 
-func (s *server) Close() error {
+func (s *Server) Close() error {
 	if s.listener == nil {
 		return fmt.Errorf("server is not running")
 	}
@@ -104,7 +102,7 @@ func (s *server) Close() error {
 	return s.listener.Close()
 }
 
-func (s *server) LastTrasfer() TransferResults {
+func (s *Server) LastTrasfer() TransferResults {
 	s.condLock.Lock()
 	defer s.condLock.Unlock()
 	s.cond.Wait()
@@ -114,13 +112,13 @@ func (s *server) LastTrasfer() TransferResults {
 	return s.lastTransfer
 }
 
-func (s *server) handleBusy(conn net.Conn) {
+func (s *Server) handleBusy(conn net.Conn) {
 	defer conn.Close()
 
 	conn.Write([]byte("i-am-busy"))
 }
 
-func (s *server) handleTransfer(conn net.Conn) {
+func (s *Server) handleTransfer(conn net.Conn) {
 	defer conn.Close()
 	s.logger.Infof("Handling a transfer from %s", conn.RemoteAddr().String())
 
@@ -140,7 +138,7 @@ func (s *server) handleTransfer(conn net.Conn) {
 	s.cond.Broadcast()
 }
 
-func (s *server) readData(conn net.Conn) TransferResults {
+func (s *Server) readData(conn net.Conn) TransferResults {
 	defer conn.Close()
 
 	var (

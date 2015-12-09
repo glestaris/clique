@@ -4,6 +4,7 @@ package fakes
 import (
 	"sync"
 
+	"github.com/glestaris/ice-clique/dispatcher"
 	"github.com/glestaris/ice-clique/transfer"
 )
 
@@ -52,4 +53,4 @@ func (fake *FakeTransferer) TransferReturns(result1 transfer.TransferResults, re
 	}{result1, result2}
 }
 
-var _ transfer.Transferer = new(FakeTransferer)
+var _ dispatcher.Transferer = new(FakeTransferer)
