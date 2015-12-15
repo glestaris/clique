@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/glestaris/ice-clique",
-	"GoVersion": "go1.5.1",
+	"GoVersion": "go1.2.1",
 	"Packages": [
 		"./..."
 	],
@@ -58,6 +58,10 @@
 		{
 			"ImportPath": "golang.org/x/net/websocket",
 			"Rev": "d5cd7348bfebdf7dbb6dbb18fa488525f9024293"
+		},
+		{
+			"ImportPath": "golang.org/x/sys/unix",
+			"Rev": "833a04a10549a95dc34458c195cbad61bbb6cb4d"
 		}
 	]
 }
