@@ -1,4 +1,7 @@
-.PHONY: all setup test ice-clique-docker linux linux-test clean
+.PHONY: linux clean setup \
+	all test save-deps \
+	linux linux-test linux-save-deps \
+  ice-clique-docker
 
 all: ./build/clique-agent
 
@@ -10,6 +13,10 @@ test: setup
 	go install github.com/onsi/ginkgo/ginkgo
 	ginkgo -p acceptance
 	ginkgo -r -p -race -skipPackage acceptance
+
+save-deps:
+	go get github.com/tools/godep
+	godep save ./...
 
 ./build/clique-agent: setup
 	go build -o ./build/clique-agent ./cmd/clique-agent/...
@@ -35,6 +42,14 @@ linux-test: ice-clique-docker
 		make test
 	docker rm ice-clique-tester
 
+linux-save-deps: ice-clique-docker
+	docker run --name="ice-clique-deps-saver" \
+		glestaris/ice-clique \
+		make save-deps
+	docker cp \
+		ice-clique-deps-saver:/go/src/github.com/glestaris/ice-clique/Godeps \
+		.
+	docker rm ice-clique-deps-saver
+
 clean:
 	rm -Rf ./build
-	docker rmi glestaris/ice-clique
