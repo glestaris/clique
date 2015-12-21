@@ -1,0 +1,7 @@
+---
+platform: linux
+image: docker:///glestaris/ice-clique
+inputs:
+  - name: ice-clique
+run:
+  path: ice-clique/ci/scripts/unit.sh
