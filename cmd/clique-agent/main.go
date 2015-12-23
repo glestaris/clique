@@ -63,36 +63,50 @@ func main() {
 	signal.Notify(sigTermCh, syscall.SIGTERM)
 	go func() {
 		<-sigTermCh
+
+		logger.Debug("Closing transfer server...")
 		transferServer.Close()
+
+		logger.Debug("Closing scheduler...")
 		sched.Stop()
+
 		if apiServer != nil {
+			logger.Debug("Closing API server...")
 			apiServer.Close()
 		}
+
 		logger.Info("Exitting clique-agent...")
 	}()
 
 	logger.Info("iCE Clique Agent")
 
 	wg := new(sync.WaitGroup)
-	wg.Add(2)
 
+	wg.Add(1)
 	go func() {
 		transferServer.Serve()
+		logger.Debug("Transfer server is done.")
 		wg.Done()
 	}()
+
+	wg.Add(1)
 	go func() {
 		sched.Run()
+		logger.Debug("Scheduler is done.")
 		wg.Done()
 	}()
+
 	if apiServer != nil {
 		wg.Add(1)
 		go func() {
 			apiServer.Serve()
+			logger.Debug("API server is done.")
 			wg.Done()
 		}()
 	}
 
 	wg.Wait()
+	logger.Debug("Clique agent is done.")
 }
 
 func setupTransferServer(logger *logrus.Logger, cfg config.Config) *transfer.Server {
