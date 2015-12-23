@@ -12,7 +12,8 @@ setup:
 test: setup
 	go install github.com/onsi/ginkgo/ginkgo
 	ginkgo -p acceptance
-	ginkgo -r -p -race -skipPackage acceptance
+	ginkgo -r -p -race -skipPackage acceptance,experiment
+	ginkgo experiment
 
 save-deps:
 	go get github.com/tools/godep
