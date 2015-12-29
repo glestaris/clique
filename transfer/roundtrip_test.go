@@ -21,6 +21,8 @@ var _ = Describe("Roundtrip", func() {
 	)
 
 	BeforeEach(func() {
+		var err error
+
 		logger = &logrus.Logger{
 			Out:       GinkgoWriter,
 			Level:     logrus.DebugLevel,
@@ -29,16 +31,14 @@ var _ = Describe("Roundtrip", func() {
 
 		port = 5000 + uint16(GinkgoParallelNode())
 
-		transferer = &transfer.Transferer{Logger: logger}
-	})
-
-	JustBeforeEach(func() {
-		var err error
-
 		server, err = transfer.NewServer(logger, port)
 		Expect(err).NotTo(HaveOccurred())
 		serverCh = make(chan bool)
 
+		transferer = &transfer.Transferer{Logger: logger}
+	})
+
+	JustBeforeEach(func() {
 		go func(sever *transfer.Server, c chan bool) {
 			defer GinkgoRecover()
 
