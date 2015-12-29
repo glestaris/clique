@@ -13,7 +13,7 @@ script:
   - make test
 deploy:
   provider: releases
-  file: build/ice-clique
+  file: ./build/clique-agent
   skip_cleanup: true
   api_key: $GITHUB_TOKEN
   on:
