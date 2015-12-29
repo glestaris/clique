@@ -45,5 +45,5 @@ func TestExperiment(t *testing.T) {
 		gexec.CleanupBuildArtifacts()
 	})
 
-	RunSpecs(t, "Experiment Suite")
+	RunSpecs(t, "Control script Suite")
 }
