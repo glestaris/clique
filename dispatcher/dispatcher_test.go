@@ -99,5 +99,14 @@ var _ = Describe("Dispatcher", func() {
 				Expect(scheduledTask.DesiredPriority).To(Equal(dispatcher.TransferTaskPriority))
 			})
 		})
+
+		It("should return the transfer task", func() {
+			task := dsptchr.Create(spec)
+
+			Expect(fakeScheduler.ScheduleCallCount()).To(Equal(1))
+			scheduledTask := fakeScheduler.ScheduleArgsForCall(0)
+
+			Expect(task).To(Equal(scheduledTask))
+		})
 	})
 })

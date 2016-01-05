@@ -104,7 +104,32 @@ var _ = Describe("Roundtrip", func() {
 				})
 			})
 
-			Describe("GET /transfers", func() {
+			Describe("GET /transfers/<State>", func() {
+				BeforeEach(func() {
+					pendingFakeTransferStater := new(fakes.FakeTransferStater)
+					pendingFakeTransferStater.TransferStateReturns(api.TransferStatePending)
+					fakeTransferCreator.CreateReturns(pendingFakeTransferStater)
+				})
+
+				It("should return the list of transfers", func() {
+					Expect(
+						client.TransfersByState(api.TransferStatePending),
+					).To(HaveLen(0))
+
+					Expect(
+						client.CreateTransfer(api.TransferSpec{}),
+					).NotTo(HaveOccurred())
+
+					Expect(
+						client.TransfersByState(api.TransferStatePending),
+					).To(HaveLen(1))
+					Expect(
+						client.TransfersByState(api.TransferStateRunning),
+					).To(HaveLen(0))
+				})
+			})
+
+			Describe("GET /transfer_results", func() {
 				var res []api.TransferResults
 
 				BeforeEach(func() {
@@ -146,7 +171,7 @@ var _ = Describe("Roundtrip", func() {
 				})
 			})
 
-			Describe("GET /transfers/<IP>", func() {
+			Describe("GET /transfer_results/<IP>", func() {
 				var res []api.TransferResults
 
 				BeforeEach(func() {

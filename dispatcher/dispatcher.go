@@ -43,8 +43,8 @@ type Dispatcher struct {
 	Logger *logrus.Logger
 }
 
-func (d *Dispatcher) Create(spec api.TransferSpec) {
-	d.Scheduler.Schedule(&TransferTask{
+func (d *Dispatcher) Create(spec api.TransferSpec) api.TransferStater {
+	task := &TransferTask{
 		Server:     d.TransferServer,
 		Transferer: d.Transferer,
 		TransferSpec: transfer.TransferSpec{
@@ -58,5 +58,9 @@ func (d *Dispatcher) Create(spec api.TransferSpec) {
 		DesiredPriority: TransferTaskPriority,
 
 		Logger: d.Logger,
-	})
+	}
+
+	d.Scheduler.Schedule(task)
+
+	return task
 }

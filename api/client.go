@@ -45,6 +45,21 @@ func (c *Client) Ping() error {
 	return nil
 }
 
+func (c *Client) TransfersByState(state TransferState) ([]Transfer, error) {
+	data, err := c.do("get", fmt.Sprintf("transfers/%s", state.String()), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var res []Transfer
+	if err := json.Unmarshal(data, &res); err != nil {
+		// untested return
+		return nil, fmt.Errorf("unmarshalling JSON: %s", err)
+	}
+
+	return res, nil
+}
+
 func (c *Client) TransferResults() ([]TransferResults, error) {
 	data, err := c.do("get", "transfer_results", nil)
 	if err != nil {

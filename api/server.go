@@ -17,9 +17,14 @@ type TransferResultsRegistry interface {
 	TransferResultsByIP(net.IP) []TransferResults
 }
 
+//go:generate counterfeiter . TransferStater
+type TransferStater interface {
+	TransferState() TransferState
+}
+
 //go:generate counterfeiter . TransferCreator
 type TransferCreator interface {
-	Create(TransferSpec)
+	Create(TransferSpec) TransferStater
 }
 
 type SECode string
@@ -35,6 +40,30 @@ type ServerError struct {
 	Msg  string `json:"msg"`
 }
 
+type liveTransfer struct {
+	spec       TransferSpec
+	savedState TransferState
+	stater     TransferStater
+}
+
+func (t *liveTransfer) state() TransferState {
+	if t.savedState != TransferStateCompleted {
+		t.savedState = t.stater.TransferState()
+		if t.savedState == TransferStateCompleted {
+			t.stater = nil
+		}
+	}
+
+	return t.savedState
+}
+
+func (t *liveTransfer) transfer() Transfer {
+	return Transfer{
+		Spec:  t.spec,
+		State: t.state(),
+	}
+}
+
 type Server struct {
 	addr string
 
@@ -43,6 +72,8 @@ type Server struct {
 
 	transferResultsRegistry TransferResultsRegistry
 	transferCreator         TransferCreator
+
+	liveTransfers []liveTransfer
 
 	lock sync.Mutex
 }
@@ -63,6 +94,7 @@ func NewServer(
 
 	e := echo.New()
 	e.Get("/ping", s.handleGetPing)
+	e.Get("/transfers/:state", s.handleGetTransfers)
 	e.Get("/transfer_results", s.handleGetTransferResults)
 	e.Get("/transfer_results/:IP", s.handleGetTransferResultsByIP)
 	e.Post("/transfers", s.handlePostTransfers)
@@ -74,6 +106,22 @@ func NewServer(
 
 func (s *Server) handleGetPing(c *echo.Context) error {
 	return c.String(200, "")
+}
+
+func (s *Server) handleGetTransfers(c *echo.Context) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	state := ParseTransferState(c.Param("state"))
+
+	res := []Transfer{}
+	for _, lt := range s.liveTransfers {
+		if lt.state() == state {
+			res = append(res, lt.transfer())
+		}
+	}
+
+	return c.JSON(200, res)
 }
 
 func (s *Server) handleGetTransferResults(c *echo.Context) error {
@@ -105,7 +153,13 @@ func (s *Server) handlePostTransfers(c *echo.Context) error {
 		)
 	}
 
-	s.transferCreator.Create(spec)
+	transferStater := s.transferCreator.Create(spec)
+	s.lock.Lock()
+	s.liveTransfers = append(s.liveTransfers, liveTransfer{
+		spec:   spec,
+		stater: transferStater,
+	})
+	s.lock.Unlock()
 
 	return c.String(200, "")
 }

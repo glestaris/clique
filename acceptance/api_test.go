@@ -98,5 +98,23 @@ var _ = Describe("Api", func() {
 
 			close(done)
 		}, 5.0)
+
+		It("should return list of pending transfers", func() {
+			Expect(client.CreateTransfer(api.TransferSpec{
+				IP:   net.ParseIP("127.0.0.1"),
+				Port: tPortSecond,
+				Size: 10 * 1024 * 1024,
+			})).To(Succeed())
+
+			transferState := func() []api.Transfer {
+				transfers, err := client.TransfersByState(api.TransferStateRunning)
+				Expect(err).NotTo(HaveOccurred())
+				return transfers
+			}
+
+			Eventually(transferState).Should(HaveLen(1))
+
+			Eventually(transferState).Should(HaveLen(0))
+		})
 	})
 })

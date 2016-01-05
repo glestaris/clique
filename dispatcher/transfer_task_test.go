@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/glestaris/ice-clique/api"
 	"github.com/glestaris/ice-clique/dispatcher"
 	"github.com/glestaris/ice-clique/dispatcher/fakes"
 	"github.com/glestaris/ice-clique/scheduler"
@@ -51,6 +52,10 @@ var _ = Describe("TransferTask", func() {
 		}
 	})
 
+	It("should return the provided priority", func() {
+		Expect(t.Priority()).To(Equal(priority))
+	})
+
 	It("should run the transfer", func() {
 		t.Run()
 		Expect(fakeTransferer.TransferCallCount()).To(Equal(1))
@@ -66,48 +71,96 @@ var _ = Describe("TransferTask", func() {
 		Expect(fakeServer.ResumeCallCount()).To(Equal(1))
 	})
 
-	It("should not change state as long as the transfer fails", func() {
-		fakeTransferer.TransferReturns(
-			transfer.TransferResults{}, errors.New("banana"),
-		)
+	Context("when the task is failing for a while", func() {
+		BeforeEach(func() {
+			fakeTransferer.TransferReturns(
+				transfer.TransferResults{}, errors.New("banana"),
+			)
+		})
 
-		for i := 0; i < 100; i++ {
+		It("should not change state", func() {
+			for i := 0; i < 100; i++ {
+				t.Run()
+				Expect(t.State()).To(Equal(scheduler.TaskStateReady))
+			}
+
+			fakeTransferer.TransferReturns(transfer.TransferResults{}, nil)
 			t.Run()
-			Expect(t.State()).To(Equal(scheduler.TaskStateReady))
-		}
+			Expect(t.State()).To(Equal(scheduler.TaskStateDone))
+		})
 
-		fakeTransferer.TransferReturns(transfer.TransferResults{}, nil)
-		t.Run()
-		Expect(t.State()).To(Equal(scheduler.TaskStateDone))
+		It("should change transfer state back to pending", func() {
+			for i := 0; i < 100; i++ {
+				t.Run()
+				Expect(t.TransferState()).To(Equal(api.TransferStatePending))
+			}
+
+			fakeTransferer.TransferReturns(transfer.TransferResults{}, nil)
+			t.Run()
+			Expect(t.TransferState()).To(Equal(api.TransferStateCompleted))
+		})
 	})
 
-	It("should register the transfer results to the registry", func() {
-		transferResults := transfer.TransferResults{
-			Duration:  time.Millisecond * 100,
-			Checksum:  uint32(12),
-			BytesSent: uint32(10 * 1024 * 1024),
-		}
-		fakeTransferer.TransferReturns(transferResults, nil)
+	Context("when the task succeeds with results", func() {
+		var transferResults transfer.TransferResults
 
-		t.Run()
+		BeforeEach(func() {
+			transferResults = transfer.TransferResults{
+				Duration:  time.Millisecond * 100,
+				Checksum:  uint32(12),
+				BytesSent: uint32(10 * 1024 * 1024),
+			}
+			fakeTransferer.TransferReturns(transferResults, nil)
+		})
 
-		Expect(fakeRegistry.RegisterCallCount()).To(Equal(1))
-		ip, res := fakeRegistry.RegisterArgsForCall(0)
-		Expect(ip).To(Equal(transferSpec.IP))
-		Expect(res.IP).To(Equal(transferSpec.IP))
-		Expect(res.BytesSent).To(Equal(transferResults.BytesSent))
-		Expect(res.Checksum).To(Equal(transferResults.Checksum))
-		Expect(res.Duration).To(Equal(transferResults.Duration))
-		Expect(res.Time).To(BeTemporally("~", time.Now(), time.Second))
+		It("should register the transfer results to the registry", func() {
+			t.Run()
+
+			Expect(fakeRegistry.RegisterCallCount()).To(Equal(1))
+			ip, res := fakeRegistry.RegisterArgsForCall(0)
+			Expect(ip).To(Equal(transferSpec.IP))
+			Expect(res.IP).To(Equal(transferSpec.IP))
+			Expect(res.BytesSent).To(Equal(transferResults.BytesSent))
+			Expect(res.Checksum).To(Equal(transferResults.Checksum))
+			Expect(res.Duration).To(Equal(transferResults.Duration))
+			Expect(res.Time).To(BeTemporally("~", time.Now(), time.Second))
+		})
 	})
 
-	It("should return the provided priority", func() {
-		Expect(t.Priority()).To(Equal(priority))
-	})
+	Context("when the task takes time", func() {
+		var transfererChan chan bool
 
-	It("should change state appropriately", func() {
-		Expect(t.State()).To(Equal(scheduler.TaskStateReady))
-		t.Run()
-		Expect(t.State()).To(Equal(scheduler.TaskStateDone))
+		BeforeEach(func() {
+			transfererChan = make(chan bool)
+
+			fakeTransferer.TransferStub = func(
+				_ transfer.TransferSpec,
+			) (transfer.TransferResults, error) {
+				transfererChan <- true
+
+				<-transfererChan
+
+				return transfer.TransferResults{}, nil
+			}
+		})
+
+		It("should change the transfer state to running", func() {
+			Expect(t.TransferState()).To(Equal(api.TransferStatePending))
+
+			runChan := make(chan struct{})
+			go func() {
+				t.Run()
+
+				close(runChan)
+			}()
+
+			Eventually(transfererChan).Should(Receive())
+			Expect(t.TransferState()).To(Equal(api.TransferStateRunning))
+
+			close(transfererChan)
+			Eventually(runChan).Should(BeClosed())
+
+			Expect(t.TransferState()).To(Equal(api.TransferStateCompleted))
+		})
 	})
 })
