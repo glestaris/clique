@@ -18,9 +18,9 @@ var _ = Describe("Registry", func() {
 		r = registry.NewRegistry()
 	})
 
-	Describe("Transfers", func() {
+	Describe("TransferResults", func() {
 		It("should return an empty list", func() {
-			Expect(r.Transfers()).To(BeEmpty())
+			Expect(r.TransferResults()).To(BeEmpty())
 		})
 
 		Context("when results have been registered", func() {
@@ -44,7 +44,7 @@ var _ = Describe("Registry", func() {
 			})
 
 			It("should return them", func() {
-				res := r.Transfers()
+				res := r.TransferResults()
 
 				Expect(res).To(Equal(transferResultsList))
 				// is it in its own array?
@@ -53,9 +53,9 @@ var _ = Describe("Registry", func() {
 		})
 	})
 
-	Describe("TransfersByIP", func() {
+	Describe("TransferResultsByIP", func() {
 		It("should return an empty list", func() {
-			Expect(r.TransfersByIP(net.ParseIP("127.0.0.1"))).To(BeEmpty())
+			Expect(r.TransferResultsByIP(net.ParseIP("127.0.0.1"))).To(BeEmpty())
 		})
 
 		Context("when results have been registered", func() {
@@ -86,7 +86,7 @@ var _ = Describe("Registry", func() {
 			})
 
 			It("should return only the results that match the IP", func() {
-				res := r.TransfersByIP(targetIP)
+				res := r.TransferResultsByIP(targetIP)
 
 				Expect(res).To(Equal(transferResultsList))
 				// is it in its own array?

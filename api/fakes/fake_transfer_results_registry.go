@@ -9,74 +9,74 @@ import (
 )
 
 type FakeTransferResultsRegistry struct {
-	TransfersStub        func() []api.TransferResults
-	transfersMutex       sync.RWMutex
-	transfersArgsForCall []struct{}
-	transfersReturns     struct {
+	TransferResultsStub        func() []api.TransferResults
+	transferResultsMutex       sync.RWMutex
+	transferResultsArgsForCall []struct{}
+	transferResultsReturns     struct {
 		result1 []api.TransferResults
 	}
-	TransfersByIPStub        func(net.IP) []api.TransferResults
-	transfersByIPMutex       sync.RWMutex
-	transfersByIPArgsForCall []struct {
+	TransferResultsByIPStub        func(net.IP) []api.TransferResults
+	transferResultsByIPMutex       sync.RWMutex
+	transferResultsByIPArgsForCall []struct {
 		arg1 net.IP
 	}
-	transfersByIPReturns struct {
+	transferResultsByIPReturns struct {
 		result1 []api.TransferResults
 	}
 }
 
-func (fake *FakeTransferResultsRegistry) Transfers() []api.TransferResults {
-	fake.transfersMutex.Lock()
-	fake.transfersArgsForCall = append(fake.transfersArgsForCall, struct{}{})
-	fake.transfersMutex.Unlock()
-	if fake.TransfersStub != nil {
-		return fake.TransfersStub()
+func (fake *FakeTransferResultsRegistry) TransferResults() []api.TransferResults {
+	fake.transferResultsMutex.Lock()
+	fake.transferResultsArgsForCall = append(fake.transferResultsArgsForCall, struct{}{})
+	fake.transferResultsMutex.Unlock()
+	if fake.TransferResultsStub != nil {
+		return fake.TransferResultsStub()
 	} else {
-		return fake.transfersReturns.result1
+		return fake.transferResultsReturns.result1
 	}
 }
 
-func (fake *FakeTransferResultsRegistry) TransfersCallCount() int {
-	fake.transfersMutex.RLock()
-	defer fake.transfersMutex.RUnlock()
-	return len(fake.transfersArgsForCall)
+func (fake *FakeTransferResultsRegistry) TransferResultsCallCount() int {
+	fake.transferResultsMutex.RLock()
+	defer fake.transferResultsMutex.RUnlock()
+	return len(fake.transferResultsArgsForCall)
 }
 
-func (fake *FakeTransferResultsRegistry) TransfersReturns(result1 []api.TransferResults) {
-	fake.TransfersStub = nil
-	fake.transfersReturns = struct {
+func (fake *FakeTransferResultsRegistry) TransferResultsReturns(result1 []api.TransferResults) {
+	fake.TransferResultsStub = nil
+	fake.transferResultsReturns = struct {
 		result1 []api.TransferResults
 	}{result1}
 }
 
-func (fake *FakeTransferResultsRegistry) TransfersByIP(arg1 net.IP) []api.TransferResults {
-	fake.transfersByIPMutex.Lock()
-	fake.transfersByIPArgsForCall = append(fake.transfersByIPArgsForCall, struct {
+func (fake *FakeTransferResultsRegistry) TransferResultsByIP(arg1 net.IP) []api.TransferResults {
+	fake.transferResultsByIPMutex.Lock()
+	fake.transferResultsByIPArgsForCall = append(fake.transferResultsByIPArgsForCall, struct {
 		arg1 net.IP
 	}{arg1})
-	fake.transfersByIPMutex.Unlock()
-	if fake.TransfersByIPStub != nil {
-		return fake.TransfersByIPStub(arg1)
+	fake.transferResultsByIPMutex.Unlock()
+	if fake.TransferResultsByIPStub != nil {
+		return fake.TransferResultsByIPStub(arg1)
 	} else {
-		return fake.transfersByIPReturns.result1
+		return fake.transferResultsByIPReturns.result1
 	}
 }
 
-func (fake *FakeTransferResultsRegistry) TransfersByIPCallCount() int {
-	fake.transfersByIPMutex.RLock()
-	defer fake.transfersByIPMutex.RUnlock()
-	return len(fake.transfersByIPArgsForCall)
+func (fake *FakeTransferResultsRegistry) TransferResultsByIPCallCount() int {
+	fake.transferResultsByIPMutex.RLock()
+	defer fake.transferResultsByIPMutex.RUnlock()
+	return len(fake.transferResultsByIPArgsForCall)
 }
 
-func (fake *FakeTransferResultsRegistry) TransfersByIPArgsForCall(i int) net.IP {
-	fake.transfersByIPMutex.RLock()
-	defer fake.transfersByIPMutex.RUnlock()
-	return fake.transfersByIPArgsForCall[i].arg1
+func (fake *FakeTransferResultsRegistry) TransferResultsByIPArgsForCall(i int) net.IP {
+	fake.transferResultsByIPMutex.RLock()
+	defer fake.transferResultsByIPMutex.RUnlock()
+	return fake.transferResultsByIPArgsForCall[i].arg1
 }
 
-func (fake *FakeTransferResultsRegistry) TransfersByIPReturns(result1 []api.TransferResults) {
-	fake.TransfersByIPStub = nil
-	fake.transfersByIPReturns = struct {
+func (fake *FakeTransferResultsRegistry) TransferResultsByIPReturns(result1 []api.TransferResults) {
+	fake.TransferResultsByIPStub = nil
+	fake.transferResultsByIPReturns = struct {
 		result1 []api.TransferResults
 	}{result1}
 }

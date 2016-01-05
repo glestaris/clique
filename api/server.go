@@ -13,8 +13,8 @@ import (
 
 //go:generate counterfeiter . TransferResultsRegistry
 type TransferResultsRegistry interface {
-	Transfers() []TransferResults
-	TransfersByIP(net.IP) []TransferResults
+	TransferResults() []TransferResults
+	TransferResultsByIP(net.IP) []TransferResults
 }
 
 //go:generate counterfeiter . TransferCreator
@@ -63,8 +63,8 @@ func NewServer(
 
 	e := echo.New()
 	e.Get("/ping", s.handleGetPing)
-	e.Get("/transfers", s.handleGetTransfers)
-	e.Get("/transfers/:IP", s.handleGetTransfersByIP)
+	e.Get("/transfer_results", s.handleGetTransferResults)
+	e.Get("/transfer_results/:IP", s.handleGetTransferResultsByIP)
 	e.Post("/transfers", s.handlePostTransfers)
 	s.httpServer = e.Server(addr)
 	s.httpServer.SetKeepAlivesEnabled(false)
@@ -76,16 +76,16 @@ func (s *Server) handleGetPing(c *echo.Context) error {
 	return c.String(200, "")
 }
 
-func (s *Server) handleGetTransfers(c *echo.Context) error {
-	res := s.transferResultsRegistry.Transfers()
+func (s *Server) handleGetTransferResults(c *echo.Context) error {
+	res := s.transferResultsRegistry.TransferResults()
 
 	return c.JSON(200, res)
 }
 
-func (s *Server) handleGetTransfersByIP(c *echo.Context) error {
+func (s *Server) handleGetTransferResultsByIP(c *echo.Context) error {
 	ip := net.ParseIP(c.Param("IP"))
 
-	res := s.transferResultsRegistry.TransfersByIP(ip)
+	res := s.transferResultsRegistry.TransferResultsByIP(ip)
 
 	return c.JSON(200, res)
 }

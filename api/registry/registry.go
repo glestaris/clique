@@ -21,7 +21,7 @@ func NewRegistry() *Registry {
 	}
 }
 
-func (r *Registry) Transfers() []api.TransferResults {
+func (r *Registry) TransferResults() []api.TransferResults {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
@@ -31,7 +31,7 @@ func (r *Registry) Transfers() []api.TransferResults {
 	return res
 }
 
-func (r *Registry) TransfersByIP(ip net.IP) []api.TransferResults {
+func (r *Registry) TransferResultsByIP(ip net.IP) []api.TransferResults {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 

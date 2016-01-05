@@ -127,21 +127,21 @@ var _ = Describe("Roundtrip", func() {
 							Time:      t,
 						},
 					}
-					fakeTransferResultsRegistry.TransfersReturns(res)
+					fakeTransferResultsRegistry.TransferResultsReturns(res)
 				})
 
 				It("should return the registry results", func() {
-					recvRes, err := client.Transfers()
+					recvRes, err := client.TransferResults()
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(recvRes).To(Equal(res))
 				})
 
 				It("should call the registry", func() {
-					client.Transfers()
+					client.TransferResults()
 
 					Expect(
-						fakeTransferResultsRegistry.TransfersCallCount(),
+						fakeTransferResultsRegistry.TransferResultsCallCount(),
 					).To(Equal(1))
 				})
 			})
@@ -162,11 +162,11 @@ var _ = Describe("Roundtrip", func() {
 							Time:      t,
 						},
 					}
-					fakeTransferResultsRegistry.TransfersByIPReturns(res)
+					fakeTransferResultsRegistry.TransferResultsByIPReturns(res)
 				})
 
 				It("should return the registry results", func() {
-					recvRes, err := client.TransfersByIP(net.ParseIP("12.12.12.13"))
+					recvRes, err := client.TransferResultsByIP(net.ParseIP("12.12.12.13"))
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(recvRes).To(Equal(res))
@@ -175,13 +175,13 @@ var _ = Describe("Roundtrip", func() {
 				It("should call the registry with the correct argument", func() {
 					ip := net.ParseIP("12.12.12.13")
 
-					client.TransfersByIP(ip)
+					client.TransferResultsByIP(ip)
 
 					Expect(
-						fakeTransferResultsRegistry.TransfersByIPCallCount(),
+						fakeTransferResultsRegistry.TransferResultsByIPCallCount(),
 					).To(Equal(1))
 					Expect(
-						fakeTransferResultsRegistry.TransfersByIPArgsForCall(0),
+						fakeTransferResultsRegistry.TransferResultsByIPArgsForCall(0),
 					).To(Equal(ip))
 				})
 			})

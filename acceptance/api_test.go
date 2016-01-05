@@ -83,7 +83,7 @@ var _ = Describe("Api", func() {
 
 			var res api.TransferResults
 			for {
-				resList, err := client.TransfersByIP(net.ParseIP("127.0.0.1"))
+				resList, err := client.TransferResultsByIP(net.ParseIP("127.0.0.1"))
 				Expect(err).NotTo(HaveOccurred())
 
 				if len(resList) != 0 {

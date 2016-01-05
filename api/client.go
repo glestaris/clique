@@ -45,8 +45,8 @@ func (c *Client) Ping() error {
 	return nil
 }
 
-func (c *Client) Transfers() ([]TransferResults, error) {
-	data, err := c.do("get", "transfers", nil)
+func (c *Client) TransferResults() ([]TransferResults, error) {
+	data, err := c.do("get", "transfer_results", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -60,8 +60,8 @@ func (c *Client) Transfers() ([]TransferResults, error) {
 	return res, nil
 }
 
-func (c *Client) TransfersByIP(ip net.IP) ([]TransferResults, error) {
-	data, err := c.do("get", fmt.Sprintf("transfers/%s", ip), nil)
+func (c *Client) TransferResultsByIP(ip net.IP) ([]TransferResults, error) {
+	data, err := c.do("get", fmt.Sprintf("transfer_results/%s", ip), nil)
 	if err != nil {
 		return nil, err
 	}
