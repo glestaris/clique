@@ -45,6 +45,15 @@ func (c *Client) Ping() error {
 	return nil
 }
 
+func (c *Client) Version() (string, error) {
+	data, err := c.do("get", "version", nil)
+	if err != nil {
+		return "", err
+	}
+
+	return string(data), nil
+}
+
 func (c *Client) TransfersByState(state TransferState) ([]Transfer, error) {
 	data, err := c.do("get", fmt.Sprintf("transfers/%s", state.String()), nil)
 	if err != nil {

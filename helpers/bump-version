@@ -1,0 +1,61 @@
+#!/usr/bin/env python
+import os
+import sys
+import version
+
+_BUMP_PATCH = 1
+_BUMP_MINOR = 2
+_BUMP_MAJOR = 3
+_USAGE = """USAGE: {} [-m|-n|-p]
+    -m Bump the major version
+    -n Bump the minor version
+    -p Bump the patch version (default)
+""".format(sys.argv[0])
+
+
+def _parse_args():
+    if len(sys.argv) != 2:
+        return None
+
+    if sys.argv[1] == '-m':
+        return _BUMP_MAJOR
+    elif sys.argv[1] == '-n':
+        return _BUMP_MINOR
+    elif sys.argv[1] == '-p':
+        return _BUMP_PATCH
+
+    return None
+
+
+def main():
+    root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
+    vf_path = os.path.join(root_path, 'version.go')
+    cur_version = version.read_version(vf_path)
+    if cur_version is None:
+        print 'ERROR: reading version from file `{}`'.format(vf_path)
+        sys.exit(1)
+
+    v = version.Version.parse_str(cur_version)
+    if v is None:
+        print 'ERROR: parsing the version string'
+        sys.exit(1)
+
+    operation = _parse_args()
+    if operation == _BUMP_MAJOR:
+        v.bump_major()
+    elif operation == _BUMP_MINOR:
+        v.bump_minor()
+    elif operation == _BUMP_PATCH:
+        v.bump_patch()
+    else:
+        print 'ERROR: parsing the command line arguments'
+        print _USAGE
+        sys.exit(1)
+
+    print 'Replacing old version "{}" with "{}"'.format(cur_version, str(v))
+    version.write_version(vf_path, str(v))
+
+
+if __name__ == '__main__':
+    main()

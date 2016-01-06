@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"net"
 	"os"
 	"os/signal"
@@ -11,6 +12,7 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/glestaris/ice-clique"
 	"github.com/glestaris/ice-clique/api"
 	"github.com/glestaris/ice-clique/api/registry"
 	"github.com/glestaris/ice-clique/config"
@@ -24,11 +26,18 @@ var (
 	cfg config.Config
 
 	configPath = flag.String("config", "", "The configuration file path")
-	debug      = flag.Bool("debug", false, "Print debug messaging")
+
+	version = flag.Bool("version", false, "Print clique-agent version")
+	debug   = flag.Bool("debug", false, "Print debug messaging")
 )
 
 func main() {
 	flag.Parse()
+
+	if *version {
+		fmt.Printf("clique-agent v%s\n", ice_clique.CliqueAgentVersion)
+		os.Exit(0)
+	}
 
 	level := logrus.InfoLevel
 	if *debug {

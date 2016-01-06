@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/glestaris/ice-clique"
 	"github.com/labstack/echo"
 )
 
@@ -94,6 +95,7 @@ func NewServer(
 
 	e := echo.New()
 	e.Get("/ping", s.handleGetPing)
+	e.Get("/version", s.handleGetVersion)
 	e.Get("/transfers/:state", s.handleGetTransfers)
 	e.Get("/transfer_results", s.handleGetTransferResults)
 	e.Get("/transfer_results/:IP", s.handleGetTransferResultsByIP)
@@ -106,6 +108,10 @@ func NewServer(
 
 func (s *Server) handleGetPing(c *echo.Context) error {
 	return c.String(200, "")
+}
+
+func (s *Server) handleGetVersion(c *echo.Context) error {
+	return c.String(200, ice_clique.CliqueAgentVersion)
 }
 
 func (s *Server) handleGetTransfers(c *echo.Context) error {
