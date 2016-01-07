@@ -116,8 +116,8 @@ var _ = Describe("TransferTask", func() {
 		It("should register the transfer results to the registry", func() {
 			t.Run()
 
-			Expect(fakeRegistry.RegisterCallCount()).To(Equal(1))
-			ip, res := fakeRegistry.RegisterArgsForCall(0)
+			Expect(fakeRegistry.RegisterResultsCallCount()).To(Equal(1))
+			ip, res := fakeRegistry.RegisterResultsArgsForCall(0)
 			Expect(ip).To(Equal(transferSpec.IP))
 			Expect(res.IP).To(Equal(transferSpec.IP))
 			Expect(res.BytesSent).To(Equal(transferResults.BytesSent))

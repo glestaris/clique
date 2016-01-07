@@ -15,9 +15,9 @@ var _ = Describe("Roundtrip", func() {
 	var (
 		port uint16
 
-		fakeTransferResultsRegistry *fakes.FakeTransferResultsRegistry
-		fakeTransferCreator         *fakes.FakeTransferCreator
-		server                      *api.Server
+		fakeRegistry        *fakes.FakeRegistry
+		fakeTransferCreator *fakes.FakeTransferCreator
+		server              *api.Server
 
 		client *api.Client
 	)
@@ -25,11 +25,11 @@ var _ = Describe("Roundtrip", func() {
 	BeforeEach(func() {
 		port = uint16(6010 + GinkgoParallelNode())
 
-		fakeTransferResultsRegistry = new(fakes.FakeTransferResultsRegistry)
+		fakeRegistry = new(fakes.FakeRegistry)
 		fakeTransferCreator = new(fakes.FakeTransferCreator)
 		server = api.NewServer(
 			port,
-			fakeTransferResultsRegistry,
+			fakeRegistry,
 			fakeTransferCreator,
 		)
 
@@ -106,27 +106,52 @@ var _ = Describe("Roundtrip", func() {
 			})
 
 			Describe("GET /transfers/<State>", func() {
+				var specA, specB api.TransferSpec
+
 				BeforeEach(func() {
-					pendingFakeTransferStater := new(fakes.FakeTransferStater)
-					pendingFakeTransferStater.TransferStateReturns(api.TransferStatePending)
-					fakeTransferCreator.CreateReturns(pendingFakeTransferStater)
+					specA = api.TransferSpec{
+						IP:   net.ParseIP("127.0.0.1"),
+						Port: 1212,
+						Size: 1024,
+					}
+
+					specB = api.TransferSpec{
+						IP:   net.ParseIP("127.0.0.18"),
+						Port: 2424,
+						Size: 2048,
+					}
+
+					fakeRegistry.TransfersByStateStub = func(
+						state api.TransferState,
+					) []api.Transfer {
+						if state == api.TransferStatePending {
+							return []api.Transfer{
+								api.Transfer{State: api.TransferStatePending, Spec: specA},
+							}
+						} else if state == api.TransferStateCompleted {
+							return []api.Transfer{
+								api.Transfer{State: api.TransferStateCompleted, Spec: specB},
+							}
+						}
+
+						return []api.Transfer{}
+					}
 				})
 
 				It("should return the list of transfers", func() {
-					Expect(
-						client.TransfersByState(api.TransferStatePending),
-					).To(HaveLen(0))
+					transfers, err := client.TransfersByState(api.TransferStatePending)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(transfers).To(HaveLen(1))
+					Expect(transfers[0].Spec).To(Equal(specA))
 
-					Expect(
-						client.CreateTransfer(api.TransferSpec{}),
-					).NotTo(HaveOccurred())
+					transfers, err = client.TransfersByState(api.TransferStateRunning)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(transfers).To(HaveLen(0))
 
-					Expect(
-						client.TransfersByState(api.TransferStatePending),
-					).To(HaveLen(1))
-					Expect(
-						client.TransfersByState(api.TransferStateRunning),
-					).To(HaveLen(0))
+					transfers, err = client.TransfersByState(api.TransferStateCompleted)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(transfers).To(HaveLen(1))
+					Expect(transfers[0].Spec).To(Equal(specB))
 				})
 			})
 
@@ -162,7 +187,7 @@ var _ = Describe("Roundtrip", func() {
 							Time:      t,
 						},
 					}
-					fakeTransferResultsRegistry.TransferResultsReturns(res)
+					fakeRegistry.TransferResultsReturns(res)
 				})
 
 				It("should return the registry results", func() {
@@ -176,7 +201,7 @@ var _ = Describe("Roundtrip", func() {
 					client.TransferResults()
 
 					Expect(
-						fakeTransferResultsRegistry.TransferResultsCallCount(),
+						fakeRegistry.TransferResultsCallCount(),
 					).To(Equal(1))
 				})
 			})
@@ -197,7 +222,7 @@ var _ = Describe("Roundtrip", func() {
 							Time:      t,
 						},
 					}
-					fakeTransferResultsRegistry.TransferResultsByIPReturns(res)
+					fakeRegistry.TransferResultsByIPReturns(res)
 				})
 
 				It("should return the registry results", func() {
@@ -213,10 +238,10 @@ var _ = Describe("Roundtrip", func() {
 					client.TransferResultsByIP(ip)
 
 					Expect(
-						fakeTransferResultsRegistry.TransferResultsByIPCallCount(),
+						fakeRegistry.TransferResultsByIPCallCount(),
 					).To(Equal(1))
 					Expect(
-						fakeTransferResultsRegistry.TransferResultsByIPArgsForCall(0),
+						fakeRegistry.TransferResultsByIPArgsForCall(0),
 					).To(Equal(ip))
 				})
 			})

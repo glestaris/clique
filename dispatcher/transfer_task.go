@@ -46,7 +46,7 @@ func (t *TransferTask) Run() {
 		return
 	}
 
-	t.Registry.Register(
+	t.Registry.RegisterResults(
 		t.TransferSpec.IP,
 		api.TransferResults{
 			IP:        t.TransferSpec.IP,

@@ -7,9 +7,40 @@ import (
 	"github.com/glestaris/ice-clique/api"
 )
 
+//go:generate counterfeiter . TransferStater
+type TransferStater interface {
+	TransferState() api.TransferState
+}
+
+type liveTransfer struct {
+	spec       api.TransferSpec
+	savedState api.TransferState
+	stater     TransferStater
+}
+
+func (t *liveTransfer) state() api.TransferState {
+	if t.savedState != api.TransferStateCompleted {
+		t.savedState = t.stater.TransferState()
+		if t.savedState == api.TransferStateCompleted {
+			t.stater = nil
+		}
+	}
+
+	return t.savedState
+}
+
+func (t *liveTransfer) transfer() api.Transfer {
+	return api.Transfer{
+		Spec:  t.spec,
+		State: t.state(),
+	}
+}
+
 type Registry struct {
 	results    []api.TransferResults
 	resultsMap map[string][]*api.TransferResults
+
+	liveTransfers []liveTransfer
 
 	lock sync.Mutex
 }
@@ -19,6 +50,37 @@ func NewRegistry() *Registry {
 		results:    make([]api.TransferResults, 0, 64),
 		resultsMap: make(map[string][]*api.TransferResults),
 	}
+}
+
+func (r *Registry) Transfers() []api.Transfer {
+	var res []api.Transfer
+	for _, lt := range r.liveTransfers {
+		res = append(res, lt.transfer())
+	}
+
+	return res
+}
+
+func (r *Registry) TransfersByState(state api.TransferState) []api.Transfer {
+	var res []api.Transfer
+	for _, lt := range r.liveTransfers {
+		if lt.state() == state {
+			res = append(res, lt.transfer())
+		}
+	}
+
+	return res
+}
+
+func (r *Registry) RegisterTransfer(
+	spec api.TransferSpec, stater TransferStater,
+) {
+	r.lock.Lock()
+	r.liveTransfers = append(r.liveTransfers, liveTransfer{
+		spec:   spec,
+		stater: stater,
+	})
+	r.lock.Unlock()
 }
 
 func (r *Registry) TransferResults() []api.TransferResults {
@@ -48,7 +110,7 @@ func (r *Registry) TransferResultsByIP(ip net.IP) []api.TransferResults {
 	return res
 }
 
-func (r *Registry) Register(ip net.IP, res api.TransferResults) {
+func (r *Registry) RegisterResults(ip net.IP, res api.TransferResults) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 

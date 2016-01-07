@@ -6,40 +6,71 @@ import (
 	"sync"
 
 	"github.com/glestaris/ice-clique/api"
+	"github.com/glestaris/ice-clique/api/registry"
 	"github.com/glestaris/ice-clique/dispatcher"
 )
 
 type FakeApiRegistry struct {
-	RegisterStub        func(ip net.IP, res api.TransferResults)
-	registerMutex       sync.RWMutex
-	registerArgsForCall []struct {
+	RegisterTransferStub        func(spec api.TransferSpec, stater registry.TransferStater)
+	registerTransferMutex       sync.RWMutex
+	registerTransferArgsForCall []struct {
+		spec   api.TransferSpec
+		stater registry.TransferStater
+	}
+	RegisterResultsStub        func(ip net.IP, res api.TransferResults)
+	registerResultsMutex       sync.RWMutex
+	registerResultsArgsForCall []struct {
 		ip  net.IP
 		res api.TransferResults
 	}
 }
 
-func (fake *FakeApiRegistry) Register(ip net.IP, res api.TransferResults) {
-	fake.registerMutex.Lock()
-	fake.registerArgsForCall = append(fake.registerArgsForCall, struct {
+func (fake *FakeApiRegistry) RegisterTransfer(spec api.TransferSpec, stater registry.TransferStater) {
+	fake.registerTransferMutex.Lock()
+	fake.registerTransferArgsForCall = append(fake.registerTransferArgsForCall, struct {
+		spec   api.TransferSpec
+		stater registry.TransferStater
+	}{spec, stater})
+	fake.registerTransferMutex.Unlock()
+	if fake.RegisterTransferStub != nil {
+		fake.RegisterTransferStub(spec, stater)
+	}
+}
+
+func (fake *FakeApiRegistry) RegisterTransferCallCount() int {
+	fake.registerTransferMutex.RLock()
+	defer fake.registerTransferMutex.RUnlock()
+	return len(fake.registerTransferArgsForCall)
+}
+
+func (fake *FakeApiRegistry) RegisterTransferArgsForCall(i int) (api.TransferSpec, registry.TransferStater) {
+	fake.registerTransferMutex.RLock()
+	defer fake.registerTransferMutex.RUnlock()
+	return fake.registerTransferArgsForCall[i].spec, fake.registerTransferArgsForCall[i].stater
+}
+
+func (fake *FakeApiRegistry) RegisterResults(ip net.IP, res api.TransferResults) {
+	fake.registerResultsMutex.Lock()
+	fake.registerResultsArgsForCall = append(fake.registerResultsArgsForCall, struct {
 		ip  net.IP
 		res api.TransferResults
 	}{ip, res})
-	fake.registerMutex.Unlock()
-	if fake.RegisterStub != nil {
-		fake.RegisterStub(ip, res)
+	fake.registerResultsMutex.Unlock()
+	if fake.RegisterResultsStub != nil {
+		fake.RegisterResultsStub(ip, res)
 	}
 }
 
-func (fake *FakeApiRegistry) RegisterCallCount() int {
-	fake.registerMutex.RLock()
-	defer fake.registerMutex.RUnlock()
-	return len(fake.registerArgsForCall)
+func (fake *FakeApiRegistry) RegisterResultsCallCount() int {
+	fake.registerResultsMutex.RLock()
+	defer fake.registerResultsMutex.RUnlock()
+	return len(fake.registerResultsArgsForCall)
 }
 
-func (fake *FakeApiRegistry) RegisterArgsForCall(i int) (net.IP, api.TransferResults) {
-	fake.registerMutex.RLock()
-	defer fake.registerMutex.RUnlock()
-	return fake.registerArgsForCall[i].ip, fake.registerArgsForCall[i].res
+func (fake *FakeApiRegistry) RegisterResultsArgsForCall(i int) (net.IP, api.TransferResults) {
+	fake.registerResultsMutex.RLock()
+	defer fake.registerResultsMutex.RUnlock()
+	return fake.registerResultsArgsForCall[i].ip, fake.registerResultsArgsForCall[i].res
 }
 
 var _ dispatcher.ApiRegistry = new(FakeApiRegistry)

@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/glestaris/ice-clique/api"
+	"github.com/glestaris/ice-clique/api/registry"
 )
 
 type FakeTransferStater struct {
@@ -40,4 +41,4 @@ func (fake *FakeTransferStater) TransferStateReturns(result1 api.TransferState) 
 	}{result1}
 }
 
-var _ api.TransferStater = new(FakeTransferStater)
+var _ registry.TransferStater = new(FakeTransferStater)

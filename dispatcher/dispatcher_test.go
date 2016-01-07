@@ -24,6 +24,7 @@ var _ = Describe("Dispatcher", func() {
 
 	BeforeEach(func() {
 		fakeScheduler = new(fakes.FakeScheduler)
+		fakeApiRegistry = new(fakes.FakeApiRegistry)
 		logger = &logrus.Logger{
 			Out:       GinkgoWriter,
 			Level:     logrus.DebugLevel,
@@ -64,6 +65,18 @@ var _ = Describe("Dispatcher", func() {
 			Expect(task).To(BeAssignableToTypeOf(&dispatcher.TransferTask{}))
 		})
 
+		It("should register the transfer", func() {
+			dsptchr.Create(spec)
+
+			Expect(fakeScheduler.ScheduleCallCount()).To(Equal(1))
+			scheduledTask := fakeScheduler.ScheduleArgsForCall(0)
+
+			Expect(fakeApiRegistry.RegisterTransferCallCount()).To(Equal(1))
+			regSpec, regStater := fakeApiRegistry.RegisterTransferArgsForCall(0)
+			Expect(regSpec).To(Equal(spec))
+			Expect(regStater).To(Equal(scheduledTask))
+		})
+
 		Describe("scheduled task", func() {
 			var scheduledTask *dispatcher.TransferTask
 
@@ -98,15 +111,6 @@ var _ = Describe("Dispatcher", func() {
 			It("should use the defined propery", func() {
 				Expect(scheduledTask.DesiredPriority).To(Equal(dispatcher.TransferTaskPriority))
 			})
-		})
-
-		It("should return the transfer task", func() {
-			task := dsptchr.Create(spec)
-
-			Expect(fakeScheduler.ScheduleCallCount()).To(Equal(1))
-			scheduledTask := fakeScheduler.ScheduleArgsForCall(0)
-
-			Expect(task).To(Equal(scheduledTask))
 		})
 	})
 })

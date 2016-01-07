@@ -7,6 +7,7 @@ import (
 
 	"github.com/glestaris/ice-clique/api"
 	"github.com/glestaris/ice-clique/api/registry"
+	"github.com/glestaris/ice-clique/api/registry/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -16,6 +17,141 @@ var _ = Describe("Registry", func() {
 
 	BeforeEach(func() {
 		r = registry.NewRegistry()
+	})
+
+	Describe("Transfers", func() {
+		Context("when there are not transfers", func() {
+			It("should return an empty list", func() {
+				Expect(r.Transfers()).To(HaveLen(0))
+			})
+
+			Describe("TransferByState", func() {
+				It("should return an empty list", func() {
+					Expect(r.TransfersByState(api.TransferStatePending)).To(HaveLen(0))
+
+					Expect(r.TransfersByState(api.TransferStateRunning)).To(HaveLen(0))
+				})
+			})
+		})
+
+		Context("when transfers are registered", func() {
+			var (
+				transferSpecA, transferSpecB api.TransferSpec
+				staterA, staterB             *fakes.FakeTransferStater
+			)
+
+			BeforeEach(func() {
+				transferSpecA = api.TransferSpec{
+					IP:   net.ParseIP("127.0.0.12"),
+					Port: 1024,
+					Size: 2048,
+				}
+				staterA = new(fakes.FakeTransferStater)
+				staterA.TransferStateReturns(api.TransferStateRunning)
+				r.RegisterTransfer(transferSpecA, staterA)
+
+				transferSpecB = api.TransferSpec{
+					IP:   net.ParseIP("127.0.0.48"),
+					Port: 8080,
+					Size: 4096,
+				}
+				staterB = new(fakes.FakeTransferStater)
+				staterB.TransferStateReturns(api.TransferStateCompleted)
+				r.RegisterTransfer(transferSpecB, staterB)
+			})
+
+			It("should return the transfers", func() {
+				Expect(r.Transfers()).To(Equal([]api.Transfer{
+					api.Transfer{
+						Spec:  transferSpecA,
+						State: api.TransferStateRunning,
+					},
+					api.Transfer{
+						Spec:  transferSpecB,
+						State: api.TransferStateCompleted,
+					},
+				}))
+			})
+
+			Describe("TransfersByState", func() {
+				It("should return the transfers", func() {
+					Expect(r.TransfersByState(api.TransferStatePending)).To(HaveLen(0))
+
+					transfers := r.TransfersByState(api.TransferStateRunning)
+					Expect(transfers).To(Equal([]api.Transfer{
+						api.Transfer{
+							Spec:  transferSpecA,
+							State: api.TransferStateRunning,
+						},
+					}))
+
+					transfers = r.TransfersByState(api.TransferStateCompleted)
+					Expect(transfers).To(Equal([]api.Transfer{
+						api.Transfer{
+							Spec:  transferSpecB,
+							State: api.TransferStateCompleted,
+						},
+					}))
+				})
+			})
+
+			Context("when a stater changes state", func() {
+				It("returns a new transfer instance", func() {
+					Expect(r.Transfers()).To(Equal([]api.Transfer{
+						api.Transfer{
+							Spec:  transferSpecA,
+							State: api.TransferStateRunning,
+						},
+						api.Transfer{
+							Spec:  transferSpecB,
+							State: api.TransferStateCompleted,
+						},
+					}))
+
+					staterA.TransferStateReturns(api.TransferStateCompleted)
+
+					Expect(r.Transfers()).To(Equal([]api.Transfer{
+						api.Transfer{
+							Spec:  transferSpecA,
+							State: api.TransferStateCompleted,
+						},
+						api.Transfer{
+							Spec:  transferSpecB,
+							State: api.TransferStateCompleted,
+						},
+					}))
+				})
+
+				Describe("TransfersByState", func() {
+					It("returns a new transfer instance", func() {
+						transfers := r.TransfersByState(api.TransferStateRunning)
+						Expect(transfers).To(Equal([]api.Transfer{
+							api.Transfer{
+								Spec:  transferSpecA,
+								State: api.TransferStateRunning,
+							},
+						}))
+
+						staterA.TransferStateReturns(api.TransferStateCompleted)
+
+						transfers = r.TransfersByState(api.TransferStateRunning)
+						Expect(transfers).To(HaveLen(0))
+
+						transfers = r.TransfersByState(api.TransferStateCompleted)
+						Expect(transfers).To(Equal([]api.Transfer{
+							api.Transfer{
+								Spec:  transferSpecA,
+								State: api.TransferStateCompleted,
+							},
+							api.Transfer{
+								Spec:  transferSpecB,
+								State: api.TransferStateCompleted,
+							},
+						}))
+					})
+				})
+			})
+		})
 	})
 
 	Describe("TransferResults", func() {
@@ -39,7 +175,7 @@ var _ = Describe("Registry", func() {
 					res := makeTranaferResults(ip, 20*1024*1024)
 					transferResultsList = append(transferResultsList, res)
 
-					r.Register(ip, res)
+					r.RegisterResults(ip, res)
 				}
 			})
 
@@ -81,7 +217,7 @@ var _ = Describe("Registry", func() {
 						transferResultsList = append(transferResultsList, res)
 					}
 
-					r.Register(ip, res)
+					r.RegisterResults(ip, res)
 				}
 			})
 

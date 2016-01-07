@@ -5,6 +5,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/glestaris/ice-clique/api"
+	"github.com/glestaris/ice-clique/api/registry"
 	"github.com/glestaris/ice-clique/scheduler"
 	"github.com/glestaris/ice-clique/transfer"
 )
@@ -29,7 +30,8 @@ type Transferer interface {
 
 //go:generate counterfeiter . ApiRegistry
 type ApiRegistry interface {
-	Register(ip net.IP, res api.TransferResults)
+	RegisterTransfer(spec api.TransferSpec, stater registry.TransferStater)
+	RegisterResults(ip net.IP, res api.TransferResults)
 }
 
 type Dispatcher struct {
@@ -43,7 +45,7 @@ type Dispatcher struct {
 	Logger *logrus.Logger
 }
 
-func (d *Dispatcher) Create(spec api.TransferSpec) api.TransferStater {
+func (d *Dispatcher) Create(spec api.TransferSpec) {
 	task := &TransferTask{
 		Server:     d.TransferServer,
 		Transferer: d.Transferer,
@@ -61,6 +63,5 @@ func (d *Dispatcher) Create(spec api.TransferSpec) api.TransferStater {
 	}
 
 	d.Scheduler.Schedule(task)
-
-	return task
+	d.ApiRegistry.RegisterTransfer(spec, task)
 }

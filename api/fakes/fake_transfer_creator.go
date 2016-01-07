@@ -8,26 +8,21 @@ import (
 )
 
 type FakeTransferCreator struct {
-	CreateStub        func(api.TransferSpec) api.TransferStater
+	CreateStub        func(api.TransferSpec)
 	createMutex       sync.RWMutex
 	createArgsForCall []struct {
 		arg1 api.TransferSpec
 	}
-	createReturns struct {
-		result1 api.TransferStater
-	}
 }
 
-func (fake *FakeTransferCreator) Create(arg1 api.TransferSpec) api.TransferStater {
+func (fake *FakeTransferCreator) Create(arg1 api.TransferSpec) {
 	fake.createMutex.Lock()
 	fake.createArgsForCall = append(fake.createArgsForCall, struct {
 		arg1 api.TransferSpec
 	}{arg1})
 	fake.createMutex.Unlock()
 	if fake.CreateStub != nil {
-		return fake.CreateStub(arg1)
-	} else {
-		return fake.createReturns.result1
+		fake.CreateStub(arg1)
 	}
 }
 
@@ -41,13 +36,6 @@ func (fake *FakeTransferCreator) CreateArgsForCall(i int) api.TransferSpec {
 	fake.createMutex.RLock()
 	defer fake.createMutex.RUnlock()
 	return fake.createArgsForCall[i].arg1
-}
-
-func (fake *FakeTransferCreator) CreateReturns(result1 api.TransferStater) {
-	fake.CreateStub = nil
-	fake.createReturns = struct {
-		result1 api.TransferStater
-	}{result1}
 }
 
 var _ api.TransferCreator = new(FakeTransferCreator)

@@ -12,20 +12,16 @@ import (
 	"github.com/labstack/echo"
 )
 
-//go:generate counterfeiter . TransferResultsRegistry
-type TransferResultsRegistry interface {
+//go:generate counterfeiter . Registry
+type Registry interface {
+	TransfersByState(state TransferState) []Transfer
 	TransferResults() []TransferResults
 	TransferResultsByIP(net.IP) []TransferResults
 }
 
-//go:generate counterfeiter . TransferStater
-type TransferStater interface {
-	TransferState() TransferState
-}
-
 //go:generate counterfeiter . TransferCreator
 type TransferCreator interface {
-	Create(TransferSpec) TransferStater
+	Create(TransferSpec)
 }
 
 type SECode string
@@ -41,47 +37,21 @@ type ServerError struct {
 	Msg  string `json:"msg"`
 }
 
-type liveTransfer struct {
-	spec       TransferSpec
-	savedState TransferState
-	stater     TransferStater
-}
-
-func (t *liveTransfer) state() TransferState {
-	if t.savedState != TransferStateCompleted {
-		t.savedState = t.stater.TransferState()
-		if t.savedState == TransferStateCompleted {
-			t.stater = nil
-		}
-	}
-
-	return t.savedState
-}
-
-func (t *liveTransfer) transfer() Transfer {
-	return Transfer{
-		Spec:  t.spec,
-		State: t.state(),
-	}
-}
-
 type Server struct {
 	addr string
 
 	listener   net.Listener
 	httpServer *http.Server
 
-	transferResultsRegistry TransferResultsRegistry
-	transferCreator         TransferCreator
-
-	liveTransfers []liveTransfer
+	registry        Registry
+	transferCreator TransferCreator
 
 	lock sync.Mutex
 }
 
 func NewServer(
 	port uint16,
-	transferResultsRegistry TransferResultsRegistry,
+	registry Registry,
 	transferCreator TransferCreator,
 ) *Server {
 	addr := fmt.Sprintf(":%d", port)
@@ -89,8 +59,8 @@ func NewServer(
 	s := &Server{
 		addr: addr,
 
-		transferResultsRegistry: transferResultsRegistry,
-		transferCreator:         transferCreator,
+		registry:        registry,
+		transferCreator: transferCreator,
 	}
 
 	e := echo.New()
@@ -120,18 +90,11 @@ func (s *Server) handleGetTransfers(c *echo.Context) error {
 
 	state := ParseTransferState(c.Param("state"))
 
-	res := []Transfer{}
-	for _, lt := range s.liveTransfers {
-		if lt.state() == state {
-			res = append(res, lt.transfer())
-		}
-	}
-
-	return c.JSON(200, res)
+	return c.JSON(200, s.registry.TransfersByState(state))
 }
 
 func (s *Server) handleGetTransferResults(c *echo.Context) error {
-	res := s.transferResultsRegistry.TransferResults()
+	res := s.registry.TransferResults()
 
 	return c.JSON(200, res)
 }
@@ -139,7 +102,7 @@ func (s *Server) handleGetTransferResults(c *echo.Context) error {
 func (s *Server) handleGetTransferResultsByIP(c *echo.Context) error {
 	ip := net.ParseIP(c.Param("IP"))
 
-	res := s.transferResultsRegistry.TransferResultsByIP(ip)
+	res := s.registry.TransferResultsByIP(ip)
 
 	return c.JSON(200, res)
 }
@@ -159,13 +122,7 @@ func (s *Server) handlePostTransfers(c *echo.Context) error {
 		)
 	}
 
-	transferStater := s.transferCreator.Create(spec)
-	s.lock.Lock()
-	s.liveTransfers = append(s.liveTransfers, liveTransfer{
-		spec:   spec,
-		stater: transferStater,
-	})
-	s.lock.Unlock()
+	s.transferCreator.Create(spec)
 
 	return c.String(200, "")
 }
