@@ -90,7 +90,9 @@ func (s *Server) handleGetTransfers(c *echo.Context) error {
 
 	state := ParseTransferState(c.Param("state"))
 
-	return c.JSON(200, s.registry.TransfersByState(state))
+	res := s.registry.TransfersByState(state)
+
+	return c.JSON(200, res)
 }
 
 func (s *Server) handleGetTransferResults(c *echo.Context) error {

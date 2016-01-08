@@ -53,16 +53,22 @@ func NewRegistry() *Registry {
 }
 
 func (r *Registry) Transfers() []api.Transfer {
-	var res []api.Transfer
-	for _, lt := range r.liveTransfers {
-		res = append(res, lt.transfer())
+	r.lock.Lock()
+	defer r.lock.Unlock()
+
+	res := make([]api.Transfer, len(r.liveTransfers))
+	for i, lt := range r.liveTransfers {
+		res[i] = lt.transfer()
 	}
 
 	return res
 }
 
 func (r *Registry) TransfersByState(state api.TransferState) []api.Transfer {
-	var res []api.Transfer
+	r.lock.Lock()
+	defer r.lock.Unlock()
+
+	res := []api.Transfer{}
 	for _, lt := range r.liveTransfers {
 		if lt.state() == state {
 			res = append(res, lt.transfer())
@@ -76,11 +82,12 @@ func (r *Registry) RegisterTransfer(
 	spec api.TransferSpec, stater TransferStater,
 ) {
 	r.lock.Lock()
+	defer r.lock.Unlock()
+
 	r.liveTransfers = append(r.liveTransfers, liveTransfer{
 		spec:   spec,
 		stater: stater,
 	})
-	r.lock.Unlock()
 }
 
 func (r *Registry) TransferResults() []api.TransferResults {
