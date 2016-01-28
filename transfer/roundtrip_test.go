@@ -70,15 +70,22 @@ var _ = Describe("Roundtrip", func() {
 		}
 
 		for i := 0; i < 5; i++ {
-			startTime := time.Now()
-			clientRes, err := transferer.Transfer(spec)
-			Expect(err).NotTo(HaveOccurred())
-			endTime := time.Now()
+			var startTime, endTime time.Time
+			var clientRes transfer.TransferResults
+			Expect(runWRetries(
+				func() error {
+					var err error
+
+					startTime = time.Now()
+					clientRes, err = transferer.Transfer(spec)
+					endTime = time.Now()
+
+					return err
+				}, transfer.ErrServerIsBusy, 5, time.Millisecond,
+			)).To(Succeed())
 
 			duration := endTime.Sub(startTime)
 			Expect(clientRes.Duration).To(BeNumerically("<", duration))
-
-			time.Sleep(time.Millisecond) // wait for server
 		}
 	})
 
@@ -147,3 +154,20 @@ var _ = Describe("Roundtrip", func() {
 		})
 	})
 })
+
+func runWRetries(action func() error, retryOnError error, retries int,
+	sleep time.Duration) error {
+	for i := 0; i < retries; i++ {
+		err := action()
+		if err != retryOnError {
+			return err
+		}
+
+		if sleep != 0 {
+			time.Sleep(sleep)
+		}
+		continue
+	}
+
+	return retryOnError
+}

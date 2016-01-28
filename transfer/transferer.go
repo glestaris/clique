@@ -11,6 +11,10 @@ import (
 	"github.com/Sirupsen/logrus"
 )
 
+var (
+	ErrServerIsBusy = errors.New("server is busy")
+)
+
 type Transferer struct {
 	Logger *logrus.Logger
 }
@@ -51,7 +55,7 @@ func (c *Transferer) handshake(conn net.Conn) error {
 	if msg == "ok" {
 		return nil
 	} else if msg == "i-am-busy" {
-		return errors.New("server is busy")
+		return ErrServerIsBusy
 	} else {
 		return fmt.Errorf("unrecognized server response `%s`", msg)
 	}
