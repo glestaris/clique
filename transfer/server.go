@@ -18,9 +18,9 @@ type Server struct {
 
 	lastTransfer TransferResults
 
-	cond     *sync.Cond
-	condLock *sync.Mutex
-	lock     *sync.Mutex
+	transferFinish     *sync.Cond
+	transferFinishLock *sync.Mutex
+	lock               *sync.Mutex
 
 	logger *logrus.Logger
 }
@@ -32,7 +32,7 @@ func NewServer(logger *logrus.Logger, port uint16) (*Server, error) {
 	}
 	logger.Infof("Listening to port %d", port)
 
-	condLock := new(sync.Mutex)
+	transferFinishLock := new(sync.Mutex)
 	return &Server{
 		listener: listener,
 
@@ -41,9 +41,9 @@ func NewServer(logger *logrus.Logger, port uint16) (*Server, error) {
 
 		lastTransfer: TransferResults{},
 
-		cond:     sync.NewCond(condLock),
-		condLock: condLock,
-		lock:     new(sync.Mutex),
+		transferFinish:     sync.NewCond(transferFinishLock),
+		transferFinishLock: transferFinishLock,
+		lock:               new(sync.Mutex),
 
 		logger: logger,
 	}, nil
@@ -53,37 +53,41 @@ func (s *Server) Serve() {
 	for {
 		conn, err := s.listener.Accept()
 		if err != nil {
+			s.logger.Debugf(
+				"Received (maybe expected) error while listening for connection: '%s'",
+				err,
+			)
 			break
 		}
 
-		s.lock.Lock()
-		inProgress := s.inProgress
-		paused := s.paused
-		if !inProgress && !paused {
-			s.inProgress = true
-		}
-		s.lock.Unlock()
-
-		if paused || inProgress {
-			go s.handleBusy(conn)
-		} else {
-			go s.handleTransfer(conn)
-		}
+		s.handleConn(conn)
 	}
+}
+
+func (s *Server) handleConn(conn net.Conn) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	if s.paused || s.inProgress {
+		go s.handleBusy(conn)
+		return
+	}
+
+	s.inProgress = true
+	go s.handleTransfer(conn)
 }
 
 func (s *Server) Interrupt() {
 	s.lock.Lock()
 	s.paused = true
-	if !s.inProgress {
-		s.lock.Unlock()
-		return
-	}
-
-	s.condLock.Lock()
+	inProgress := s.inProgress
 	s.lock.Unlock()
-	defer s.condLock.Unlock()
-	s.cond.Wait()
+
+	if inProgress {
+		s.transferFinishLock.Lock()
+		defer s.transferFinishLock.Unlock()
+		s.transferFinish.Wait()
+	}
 }
 
 func (s *Server) Resume() {
@@ -99,13 +103,14 @@ func (s *Server) Close() error {
 		return fmt.Errorf("server is not running")
 	}
 
+	s.logger.Debug("Closing server...")
 	return s.listener.Close()
 }
 
 func (s *Server) LastTrasfer() TransferResults {
-	s.condLock.Lock()
-	defer s.condLock.Unlock()
-	s.cond.Wait()
+	s.transferFinishLock.Lock()
+	defer s.transferFinishLock.Unlock()
+	s.transferFinish.Wait()
 
 	s.lock.Lock()
 	defer s.lock.Unlock()
@@ -114,6 +119,7 @@ func (s *Server) LastTrasfer() TransferResults {
 
 func (s *Server) handleBusy(conn net.Conn) {
 	defer conn.Close()
+	s.logger.Debugf("Server is busy for request from %s", conn.RemoteAddr().String())
 
 	conn.Write([]byte("i-am-busy"))
 }
@@ -135,7 +141,7 @@ func (s *Server) handleTransfer(conn net.Conn) {
 	s.lastTransfer = res
 	s.inProgress = false
 	s.lock.Unlock()
-	s.cond.Broadcast()
+	s.transferFinish.Broadcast()
 }
 
 func (s *Server) readData(conn net.Conn) TransferResults {
