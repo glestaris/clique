@@ -8,7 +8,7 @@ import (
 	"github.com/glestaris/ice-clique/transfer"
 )
 
-type FakeTransferer struct {
+type FakeTransferrer struct {
 	TransferStub        func(spec transfer.TransferSpec) (transfer.TransferResults, error)
 	transferMutex       sync.RWMutex
 	transferArgsForCall []struct {
@@ -20,7 +20,7 @@ type FakeTransferer struct {
 	}
 }
 
-func (fake *FakeTransferer) Transfer(spec transfer.TransferSpec) (transfer.TransferResults, error) {
+func (fake *FakeTransferrer) Transfer(spec transfer.TransferSpec) (transfer.TransferResults, error) {
 	fake.transferMutex.Lock()
 	fake.transferArgsForCall = append(fake.transferArgsForCall, struct {
 		spec transfer.TransferSpec
@@ -33,19 +33,19 @@ func (fake *FakeTransferer) Transfer(spec transfer.TransferSpec) (transfer.Trans
 	}
 }
 
-func (fake *FakeTransferer) TransferCallCount() int {
+func (fake *FakeTransferrer) TransferCallCount() int {
 	fake.transferMutex.RLock()
 	defer fake.transferMutex.RUnlock()
 	return len(fake.transferArgsForCall)
 }
 
-func (fake *FakeTransferer) TransferArgsForCall(i int) transfer.TransferSpec {
+func (fake *FakeTransferrer) TransferArgsForCall(i int) transfer.TransferSpec {
 	fake.transferMutex.RLock()
 	defer fake.transferMutex.RUnlock()
 	return fake.transferArgsForCall[i].spec
 }
 
-func (fake *FakeTransferer) TransferReturns(result1 transfer.TransferResults, result2 error) {
+func (fake *FakeTransferrer) TransferReturns(result1 transfer.TransferResults, result2 error) {
 	fake.TransferStub = nil
 	fake.transferReturns = struct {
 		result1 transfer.TransferResults
@@ -53,4 +53,4 @@ func (fake *FakeTransferer) TransferReturns(result1 transfer.TransferResults, re
 	}{result1, result2}
 }
 
-var _ dispatcher.Transferer = new(FakeTransferer)
+var _ dispatcher.Transferrer = new(FakeTransferrer)

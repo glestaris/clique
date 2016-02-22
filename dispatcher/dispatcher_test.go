@@ -16,7 +16,7 @@ var _ = Describe("Dispatcher", func() {
 	var (
 		fakeScheduler      *fakes.FakeScheduler
 		fakeTransferServer *fakes.FakeInterruptible
-		fakeTransferer     *fakes.FakeTransferer
+		fakeTransferrer     *fakes.FakeTransferrer
 		fakeApiRegistry    *fakes.FakeApiRegistry
 		logger             *logrus.Logger
 		dsptchr            *dispatcher.Dispatcher
@@ -35,7 +35,7 @@ var _ = Describe("Dispatcher", func() {
 			Scheduler: fakeScheduler,
 
 			TransferServer: fakeTransferServer,
-			Transferer:     fakeTransferer,
+			Transferrer:     fakeTransferrer,
 
 			ApiRegistry: fakeApiRegistry,
 
@@ -91,9 +91,9 @@ var _ = Describe("Dispatcher", func() {
 				Expect(ok).To(BeTrue())
 			})
 
-			It("should be wired to the correct server and transferer", func() {
+			It("should be wired to the correct server and transferrer", func() {
 				Expect(scheduledTask.Server).To(Equal(fakeTransferServer))
-				Expect(scheduledTask.Transferer).To(Equal(fakeTransferer))
+				Expect(scheduledTask.Transferrer).To(Equal(fakeTransferrer))
 			})
 
 			It("should contain the correct tranfer spec", func() {

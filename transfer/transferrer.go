@@ -15,11 +15,11 @@ var (
 	ErrServerIsBusy = errors.New("server is busy")
 )
 
-type Transferer struct {
+type Transferrer struct {
 	Logger *logrus.Logger
 }
 
-func (c *Transferer) Transfer(spec TransferSpec) (TransferResults, error) {
+func (c *Transferrer) Transfer(spec TransferSpec) (TransferResults, error) {
 	conn, err := net.Dial(
 		"tcp", fmt.Sprintf("%s:%d", spec.IP.String(), spec.Port),
 	)
@@ -46,7 +46,7 @@ func (c *Transferer) Transfer(spec TransferSpec) (TransferResults, error) {
 	return res, nil
 }
 
-func (c *Transferer) handshake(conn net.Conn) error {
+func (c *Transferrer) handshake(conn net.Conn) error {
 	msgBytes := make([]byte, 16)
 	n, _ := conn.Read(msgBytes)
 
@@ -61,7 +61,7 @@ func (c *Transferer) handshake(conn net.Conn) error {
 	}
 }
 
-func (c *Transferer) randomBlock(size uint16) []byte {
+func (c *Transferrer) randomBlock(size uint16) []byte {
 	data := make([]byte, size)
 
 	rand.Read(data)
@@ -69,7 +69,7 @@ func (c *Transferer) randomBlock(size uint16) []byte {
 	return data
 }
 
-func (c *Transferer) sendData(
+func (c *Transferrer) sendData(
 	conn net.Conn,
 	size uint32,
 	block []byte,

@@ -58,11 +58,11 @@ func main() {
 	}
 
 	transferServer := setupTransferServer(logger, cfg)
-	transferer := setupTransferer(logger)
+	transferrer := setupTransferrer(logger)
 	sched := setupScheduler(logger)
 	apiRegistry := setupAPIRegistry()
 	dsptchr := setupDispatcher(
-		logger, sched, transferServer, transferer, apiRegistry,
+		logger, sched, transferServer, transferrer, apiRegistry,
 	)
 	createTransferTasks(logger, cfg, dsptchr)
 	apiServer := setupAPIServer(cfg, apiRegistry, dsptchr)
@@ -127,8 +127,8 @@ func setupTransferServer(logger *logrus.Logger, cfg config.Config) *transfer.Ser
 	return server
 }
 
-func setupTransferer(logger *logrus.Logger) *transfer.Transferer {
-	return &transfer.Transferer{Logger: logger}
+func setupTransferrer(logger *logrus.Logger) *transfer.Transferrer {
+	return &transfer.Transferrer{Logger: logger}
 }
 
 func setupScheduler(logger *logrus.Logger) *scheduler.Scheduler {
@@ -150,13 +150,13 @@ func setupDispatcher(
 	logger *logrus.Logger,
 	scheduler *scheduler.Scheduler,
 	transferServer *transfer.Server,
-	transferer *transfer.Transferer,
+	transferrer *transfer.Transferrer,
 	apiRegistry *registry.Registry,
 ) *dispatcher.Dispatcher {
 	return &dispatcher.Dispatcher{
 		Scheduler:      scheduler,
 		TransferServer: transferServer,
-		Transferer:     transferer,
+		Transferrer:     transferrer,
 		ApiRegistry:    apiRegistry,
 		Logger:         logger,
 	}

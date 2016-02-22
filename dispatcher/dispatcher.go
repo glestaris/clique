@@ -23,8 +23,8 @@ type Interruptible interface {
 	Resume()
 }
 
-//go:generate counterfeiter . Transferer
-type Transferer interface {
+//go:generate counterfeiter . Transferrer
+type Transferrer interface {
 	Transfer(spec transfer.TransferSpec) (transfer.TransferResults, error)
 }
 
@@ -38,7 +38,7 @@ type Dispatcher struct {
 	Scheduler Scheduler
 
 	TransferServer Interruptible
-	Transferer     Transferer
+	Transferrer     Transferrer
 
 	ApiRegistry ApiRegistry
 
@@ -48,7 +48,7 @@ type Dispatcher struct {
 func (d *Dispatcher) Create(spec api.TransferSpec) {
 	task := &TransferTask{
 		Server:     d.TransferServer,
-		Transferer: d.Transferer,
+		Transferrer: d.Transferrer,
 		TransferSpec: transfer.TransferSpec{
 			IP:   spec.IP,
 			Port: spec.Port,

@@ -15,7 +15,7 @@ var _ = Describe("Roundtrip", func() {
 	var (
 		logger     *logrus.Logger
 		port       uint16
-		transferer *transfer.Transferer
+		transferrer *transfer.Transferrer
 		server     *transfer.Server
 		serverCh   chan bool
 	)
@@ -35,7 +35,7 @@ var _ = Describe("Roundtrip", func() {
 		Expect(err).NotTo(HaveOccurred())
 		serverCh = make(chan bool)
 
-		transferer = &transfer.Transferer{Logger: logger}
+		transferrer = &transfer.Transferrer{Logger: logger}
 	})
 
 	JustBeforeEach(func() {
@@ -58,7 +58,7 @@ var _ = Describe("Roundtrip", func() {
 			Port: port,
 			Size: 10 * 1024,
 		}
-		_, err := transferer.Transfer(spec)
+		_, err := transferrer.Transfer(spec)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -77,7 +77,7 @@ var _ = Describe("Roundtrip", func() {
 					var err error
 
 					startTime = time.Now()
-					clientRes, err = transferer.Transfer(spec)
+					clientRes, err = transferrer.Transfer(spec)
 					endTime = time.Now()
 
 					return err
@@ -96,7 +96,7 @@ var _ = Describe("Roundtrip", func() {
 			Size: 10 * 1024,
 		}
 
-		clientRes, err := transferer.Transfer(spec)
+		clientRes, err := transferrer.Transfer(spec)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(clientRes.BytesSent).To(Equal(spec.Size))
@@ -109,7 +109,7 @@ var _ = Describe("Roundtrip", func() {
 			Size: 10 * 1024,
 		}
 
-		clientRes, err := transferer.Transfer(spec)
+		clientRes, err := transferrer.Transfer(spec)
 		Expect(err).NotTo(HaveOccurred())
 
 		serverRes := server.LastTrasfer()
@@ -129,7 +129,7 @@ var _ = Describe("Roundtrip", func() {
 				Port: port,
 			}
 
-			_, err := transferer.Transfer(spec)
+			_, err := transferrer.Transfer(spec)
 			Expect(err).To(HaveOccurred())
 		})
 
@@ -147,7 +147,7 @@ var _ = Describe("Roundtrip", func() {
 						Port: port,
 					}
 
-					_, err := transferer.Transfer(spec)
+					_, err := transferrer.Transfer(spec)
 					Expect(err).NotTo(HaveOccurred())
 				})
 			})

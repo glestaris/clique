@@ -12,7 +12,7 @@ import (
 
 type TransferTask struct {
 	Server       Interruptible
-	Transferer   Transferer
+	Transferrer   Transferrer
 	TransferSpec transfer.TransferSpec
 
 	Registry ApiRegistry
@@ -35,7 +35,7 @@ func (t *TransferTask) Run() {
 	t.transferState = api.TransferStateRunning
 	t.lock.Unlock()
 
-	res, err := t.Transferer.Transfer(t.TransferSpec)
+	res, err := t.Transferrer.Transfer(t.TransferSpec)
 	if err != nil {
 		t.Logger.Errorf("Transfer task will be rescheduled: %s", err.Error())
 

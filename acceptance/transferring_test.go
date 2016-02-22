@@ -17,7 +17,7 @@ import (
 
 var _ = Describe("Single transferring", func() {
 	var (
-		transferer *transfer.Transferer
+		transferrer *transfer.Transferrer
 		proc       *runner.ClqProcess
 		port       uint16
 	)
@@ -25,7 +25,7 @@ var _ = Describe("Single transferring", func() {
 	BeforeEach(func() {
 		var err error
 
-		transferer = &transfer.Transferer{
+		transferrer = &transfer.Transferrer{
 			Logger: &logrus.Logger{
 				Out:       GinkgoWriter,
 				Formatter: new(logrus.TextFormatter),
@@ -47,7 +47,7 @@ var _ = Describe("Single transferring", func() {
 	})
 
 	It("should accept transfers", func() {
-		_, err := transferer.Transfer(transfer.TransferSpec{
+		_, err := transferrer.Transfer(transfer.TransferSpec{
 			IP:   net.ParseIP("127.0.0.1"),
 			Port: port,
 			Size: 10 * 1024 * 1024,
@@ -66,7 +66,7 @@ var _ = Describe("Single transferring", func() {
 
 				c <- "started"
 
-				_, err := transferer.Transfer(transfer.TransferSpec{
+				_, err := transferrer.Transfer(transfer.TransferSpec{
 					IP:   net.ParseIP("127.0.0.1"),
 					Port: port,
 					Size: 20 * 1024 * 1024,
@@ -81,7 +81,7 @@ var _ = Describe("Single transferring", func() {
 			Eventually(transferStateCh).Should(Receive())
 			time.Sleep(time.Millisecond * 200) // synchronizing the requests
 
-			_, err := transferer.Transfer(transfer.TransferSpec{
+			_, err := transferrer.Transfer(transfer.TransferSpec{
 				IP:   net.ParseIP("127.0.0.1"),
 				Port: port,
 				Size: 10 * 1024 * 1024,
