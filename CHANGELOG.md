@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.2.0 (WIP)
+## v0.2.0 (06 August 2016)
 
 * Rename the `GET /transfers` and `GET /transfers/:IP` to
   `GET /transfer_results` and `GET /transfer_results/:IP` respectively.
