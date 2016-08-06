@@ -1,7 +1,0 @@
----
-platform: linux
-image: docker:///glestaris/clique
-inputs:
-  - name: clique
-run:
-  path: clique/ci/scripts/unit.sh
