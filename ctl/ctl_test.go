@@ -11,9 +11,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/glestaris/clique/config"
 	"github.com/glestaris/devoops"
 	. "github.com/glestaris/devoops/matchers"
-	"github.com/glestaris/ice-clique/config"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"

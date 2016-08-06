@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/glestaris/ice-clique/transfer"
+	"github.com/glestaris/clique/transfer"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -13,11 +13,11 @@ import (
 
 var _ = Describe("Roundtrip", func() {
 	var (
-		logger     *logrus.Logger
-		port       uint16
+		logger      *logrus.Logger
+		port        uint16
 		transferrer *transfer.Transferrer
-		server     *transfer.Server
-		serverCh   chan bool
+		server      *transfer.Server
+		serverCh    chan bool
 	)
 
 	BeforeEach(func() {

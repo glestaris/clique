@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/glestaris/ice-clique",
+	"ImportPath": "github.com/glestaris/clique",
 	"GoVersion": "go1.5",
 	"Packages": [
 		"./..."

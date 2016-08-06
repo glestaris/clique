@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/glestaris/ice-clique/acceptance/runner"
-	"github.com/glestaris/ice-clique/config"
-	"github.com/glestaris/ice-clique/transfer"
+	"github.com/glestaris/clique/acceptance/runner"
+	"github.com/glestaris/clique/config"
+	"github.com/glestaris/clique/transfer"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -18,8 +18,8 @@ import (
 var _ = Describe("Single transferring", func() {
 	var (
 		transferrer *transfer.Transferrer
-		proc       *runner.ClqProcess
-		port       uint16
+		proc        *runner.ClqProcess
+		port        uint16
 	)
 
 	BeforeEach(func() {

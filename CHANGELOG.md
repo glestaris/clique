@@ -9,7 +9,7 @@
 
 ## v0.1.0 (29 December 2015)
 
-The first release of ice-clique includes:
+The first release of clique includes:
 
 * Working agent
 * Transfer server and client

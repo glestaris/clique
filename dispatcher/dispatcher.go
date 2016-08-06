@@ -4,10 +4,10 @@ import (
 	"net"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/glestaris/ice-clique/api"
-	"github.com/glestaris/ice-clique/api/registry"
-	"github.com/glestaris/ice-clique/scheduler"
-	"github.com/glestaris/ice-clique/transfer"
+	"github.com/glestaris/clique/api"
+	"github.com/glestaris/clique/api/registry"
+	"github.com/glestaris/clique/scheduler"
+	"github.com/glestaris/clique/transfer"
 )
 
 const TransferTaskPriority int = 5
@@ -38,7 +38,7 @@ type Dispatcher struct {
 	Scheduler Scheduler
 
 	TransferServer Interruptible
-	Transferrer     Transferrer
+	Transferrer    Transferrer
 
 	ApiRegistry ApiRegistry
 
@@ -47,7 +47,7 @@ type Dispatcher struct {
 
 func (d *Dispatcher) Create(spec api.TransferSpec) {
 	task := &TransferTask{
-		Server:     d.TransferServer,
+		Server:      d.TransferServer,
 		Transferrer: d.Transferrer,
 		TransferSpec: transfer.TransferSpec{
 			IP:   spec.IP,

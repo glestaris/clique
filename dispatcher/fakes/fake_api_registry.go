@@ -5,9 +5,9 @@ import (
 	"net"
 	"sync"
 
-	"github.com/glestaris/ice-clique/api"
-	"github.com/glestaris/ice-clique/api/registry"
-	"github.com/glestaris/ice-clique/dispatcher"
+	"github.com/glestaris/clique/api"
+	"github.com/glestaris/clique/api/registry"
+	"github.com/glestaris/clique/dispatcher"
 )
 
 type FakeApiRegistry struct {

@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/glestaris/ice-clique"
+	"github.com/glestaris/clique"
 	"github.com/labstack/echo"
 )
 
@@ -81,7 +81,7 @@ func (s *Server) handleGetPing(c *echo.Context) error {
 }
 
 func (s *Server) handleGetVersion(c *echo.Context) error {
-	return c.String(200, ice_clique.CliqueAgentVersion)
+	return c.String(200, clique.CliqueAgentVersion)
 }
 
 func (s *Server) handleGetTransfers(c *echo.Context) error {

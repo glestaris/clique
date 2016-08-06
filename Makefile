@@ -1,7 +1,7 @@
 .PHONY: linux clean setup \
 	all test save-deps \
 	linux linux-test linux-save-deps \
-  ice-clique-docker
+  clique-docker
 
 all: ./build/clique-agent
 
@@ -22,35 +22,35 @@ save-deps:
 ./build/clique-agent: setup
 	go build -o ./build/clique-agent ./cmd/clique-agent/...
 
-ice-clique-docker:
-	docker build -t glestaris/ice-clique .
+clique-docker:
+	docker build -t glestaris/clique .
 
-./build/linux/clique-agent: ice-clique-docker
-	docker run --name="ice-clique-builder" \
-		glestaris/ice-clique \
+./build/linux/clique-agent: clique-docker
+	docker run --name="clique-builder" \
+		glestaris/clique \
 		make
 	mkdir -p build/linux
 	docker cp \
-		ice-clique-builder:/go/src/github.com/glestaris/ice-clique/build/clique-agent \
+		clique-builder:/go/src/github.com/glestaris/clique/build/clique-agent \
 		./build/linux/clique-agent
-	docker rm ice-clique-builder
+	docker rm clique-builder
 
 linux: ./build/linux/clique-agent
 
-linux-test: ice-clique-docker
-	docker run --name="ice-clique-tester" \
-		glestaris/ice-clique \
+linux-test: clique-docker
+	docker run --name="clique-tester" \
+		glestaris/clique \
 		make test
-	docker rm ice-clique-tester
+	docker rm clique-tester
 
-linux-save-deps: ice-clique-docker
-	docker run --name="ice-clique-deps-saver" \
-		glestaris/ice-clique \
+linux-save-deps: clique-docker
+	docker run --name="clique-deps-saver" \
+		glestaris/clique \
 		make save-deps
 	docker cp \
-		ice-clique-deps-saver:/go/src/github.com/glestaris/ice-clique/Godeps \
+		clique-deps-saver:/go/src/github.com/glestaris/clique/Godeps \
 		.
-	docker rm ice-clique-deps-saver
+	docker rm clique-deps-saver
 
 clean:
 	rm -Rf ./build

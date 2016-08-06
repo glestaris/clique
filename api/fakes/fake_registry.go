@@ -5,7 +5,7 @@ import (
 	"net"
 	"sync"
 
-	"github.com/glestaris/ice-clique/api"
+	"github.com/glestaris/clique/api"
 )
 
 type FakeRegistry struct {

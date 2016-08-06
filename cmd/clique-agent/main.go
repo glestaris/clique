@@ -12,13 +12,13 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/glestaris/ice-clique"
-	"github.com/glestaris/ice-clique/api"
-	"github.com/glestaris/ice-clique/api/registry"
-	"github.com/glestaris/ice-clique/config"
-	"github.com/glestaris/ice-clique/dispatcher"
-	"github.com/glestaris/ice-clique/scheduler"
-	"github.com/glestaris/ice-clique/transfer"
+	"github.com/glestaris/clique"
+	"github.com/glestaris/clique/api"
+	"github.com/glestaris/clique/api/registry"
+	"github.com/glestaris/clique/config"
+	"github.com/glestaris/clique/dispatcher"
+	"github.com/glestaris/clique/scheduler"
+	"github.com/glestaris/clique/transfer"
 	"github.com/pivotal-golang/clock"
 )
 
@@ -35,7 +35,7 @@ func main() {
 	flag.Parse()
 
 	if *version {
-		fmt.Printf("clique-agent v%s\n", ice_clique.CliqueAgentVersion)
+		fmt.Printf("clique-agent v%s\n", clique.CliqueAgentVersion)
 		os.Exit(0)
 	}
 
@@ -87,7 +87,7 @@ func main() {
 		logger.Info("Exitting clique-agent...")
 	}()
 
-	logger.Info("iCE Clique Agent")
+	logger.Info("Clique Agent")
 
 	wg := new(sync.WaitGroup)
 
@@ -156,7 +156,7 @@ func setupDispatcher(
 	return &dispatcher.Dispatcher{
 		Scheduler:      scheduler,
 		TransferServer: transferServer,
-		Transferrer:     transferrer,
+		Transferrer:    transferrer,
 		ApiRegistry:    apiRegistry,
 		Logger:         logger,
 	}

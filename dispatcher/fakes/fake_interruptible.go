@@ -4,7 +4,7 @@ package fakes
 import (
 	"sync"
 
-	"github.com/glestaris/ice-clique/dispatcher"
+	"github.com/glestaris/clique/dispatcher"
 )
 
 type FakeInterruptible struct {

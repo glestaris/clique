@@ -4,6 +4,6 @@ set -e -x
 
 $root_path/setup.sh
 
-cd ice-clique/
+cd clique/
 make
 ginkgo experiment

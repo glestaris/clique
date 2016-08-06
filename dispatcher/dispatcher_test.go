@@ -4,10 +4,10 @@ import (
 	"net"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/glestaris/ice-clique/api"
-	"github.com/glestaris/ice-clique/dispatcher"
-	"github.com/glestaris/ice-clique/dispatcher/fakes"
-	"github.com/glestaris/ice-clique/transfer"
+	"github.com/glestaris/clique/api"
+	"github.com/glestaris/clique/dispatcher"
+	"github.com/glestaris/clique/dispatcher/fakes"
+	"github.com/glestaris/clique/transfer"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -16,7 +16,7 @@ var _ = Describe("Dispatcher", func() {
 	var (
 		fakeScheduler      *fakes.FakeScheduler
 		fakeTransferServer *fakes.FakeInterruptible
-		fakeTransferrer     *fakes.FakeTransferrer
+		fakeTransferrer    *fakes.FakeTransferrer
 		fakeApiRegistry    *fakes.FakeApiRegistry
 		logger             *logrus.Logger
 		dsptchr            *dispatcher.Dispatcher
@@ -35,7 +35,7 @@ var _ = Describe("Dispatcher", func() {
 			Scheduler: fakeScheduler,
 
 			TransferServer: fakeTransferServer,
-			Transferrer:     fakeTransferrer,
+			Transferrer:    fakeTransferrer,
 
 			ApiRegistry: fakeApiRegistry,
 

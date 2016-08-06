@@ -1,8 +1,8 @@
 resources:
-  - name: ice-clique
+  - name: clique
     type: git
     source:
-      uri: https://github.com/glestaris/ice-clique
+      uri: https://github.com/glestaris/clique
       submodules: true
       branch: ci
 
@@ -10,28 +10,28 @@ jobs:
   - name: unit
     public: true
     plan:
-      - get: ice-clique
+      - get: clique
         trigger: true
       - task: unit
-        file: ice-clique/ci/unit.yml
+        file: clique/ci/unit.yml
 
   - name: experiment
     public: true
     plan:
-      - get: ice-clique
+      - get: clique
         trigger: true
       - task: experiment
-        file: ice-clique/ci/experiment.yml
+        file: clique/ci/experiment.yml
 
   - name: acceptance
     public: true
     plan:
-      - get: ice-clique
+      - get: clique
         trigger: true
         passed:
           - unit
       - task: acceptance
-        file: ice-clique/ci/acceptance.yml
+        file: clique/ci/acceptance.yml
 
 groups:
   - name: main

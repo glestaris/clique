@@ -1,7 +1,7 @@
 ---
 platform: linux
-image: docker:///glestaris/ice-clique
+image: docker:///glestaris/clique
 inputs:
-  - name: ice-clique
+  - name: clique
 run:
-  path: ice-clique/ci/scripts/acceptance.sh
+  path: clique/ci/scripts/acceptance.sh

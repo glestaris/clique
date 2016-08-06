@@ -6,24 +6,24 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/glestaris/ice-clique/api"
-	"github.com/glestaris/ice-clique/dispatcher"
-	"github.com/glestaris/ice-clique/dispatcher/fakes"
-	"github.com/glestaris/ice-clique/scheduler"
-	"github.com/glestaris/ice-clique/transfer"
+	"github.com/glestaris/clique/api"
+	"github.com/glestaris/clique/dispatcher"
+	"github.com/glestaris/clique/dispatcher/fakes"
+	"github.com/glestaris/clique/scheduler"
+	"github.com/glestaris/clique/transfer"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("TransferTask", func() {
 	var (
-		t              *dispatcher.TransferTask
-		fakeServer     *fakes.FakeInterruptible
+		t               *dispatcher.TransferTask
+		fakeServer      *fakes.FakeInterruptible
 		fakeTransferrer *fakes.FakeTransferrer
-		transferSpec   transfer.TransferSpec
-		fakeRegistry   *fakes.FakeApiRegistry
-		priority       int
-		logger         *logrus.Logger
+		transferSpec    transfer.TransferSpec
+		fakeRegistry    *fakes.FakeApiRegistry
+		priority        int
+		logger          *logrus.Logger
 	)
 
 	BeforeEach(func() {
@@ -44,7 +44,7 @@ var _ = Describe("TransferTask", func() {
 
 		t = &dispatcher.TransferTask{
 			Server:          fakeServer,
-			Transferrer:      fakeTransferrer,
+			Transferrer:     fakeTransferrer,
 			TransferSpec:    transferSpec,
 			Registry:        fakeRegistry,
 			DesiredPriority: priority,

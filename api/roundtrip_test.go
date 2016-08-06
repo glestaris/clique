@@ -4,9 +4,9 @@ import (
 	"net"
 	"time"
 
-	"github.com/glestaris/ice-clique"
-	"github.com/glestaris/ice-clique/api"
-	"github.com/glestaris/ice-clique/api/fakes"
+	"github.com/glestaris/clique"
+	"github.com/glestaris/clique/api"
+	"github.com/glestaris/clique/api/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -160,7 +160,7 @@ var _ = Describe("Roundtrip", func() {
 					v, err := client.Version()
 					Expect(err).NotTo(HaveOccurred())
 
-					Expect(v).To(Equal(ice_clique.CliqueAgentVersion))
+					Expect(v).To(Equal(clique.CliqueAgentVersion))
 				})
 			})
 

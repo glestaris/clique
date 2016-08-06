@@ -4,5 +4,5 @@ set -e -x
 
 $root_path/setup.sh
 
-cd ice-clique/
+cd clique/
 ginkgo -race -p acceptance

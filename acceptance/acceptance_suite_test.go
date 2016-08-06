@@ -14,8 +14,8 @@ import (
 
 	"testing"
 
-	"github.com/glestaris/ice-clique/acceptance/runner"
-	"github.com/glestaris/ice-clique/config"
+	"github.com/glestaris/clique/acceptance/runner"
+	"github.com/glestaris/clique/config"
 )
 
 var cliqueAgentBin string
@@ -31,7 +31,7 @@ func TestAcceptance(t *testing.T) {
 		var s sbsState
 
 		path, err := gexec.Build(
-			"github.com/glestaris/ice-clique/cmd/clique-agent",
+			"github.com/glestaris/clique/cmd/clique-agent",
 		)
 		Expect(err).NotTo(HaveOccurred())
 		s.CliqueAgentBin = path
@@ -84,7 +84,7 @@ func startClique(cfg config.Config, args ...string) (*runner.ClqProcess, error) 
 		return nil, err
 	}
 
-	Eventually(buffer).Should(gbytes.Say("iCE Clique Agent"))
+	Eventually(buffer).Should(gbytes.Say("Clique Agent"))
 
 	return &runner.ClqProcess{
 		Process:       cmd.Process,

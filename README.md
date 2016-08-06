@@ -1,8 +1,8 @@
-# iCE Clique experiment
+# Clique
 
-[![Build Status](https://travis-ci.org/glestaris/ice-clique.svg?branch=master)](https://travis-ci.org/glestaris/ice-clique)
+[![Build Status](https://travis-ci.org/glestaris/clique.svg?branch=master)](https://travis-ci.org/glestaris/clique)
 
-Clique experiment for iCE.
+Network performance measurements in a clique.
 
 ## Build
 

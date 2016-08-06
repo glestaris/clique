@@ -4,8 +4,8 @@ package fakes
 import (
 	"sync"
 
-	"github.com/glestaris/ice-clique/dispatcher"
-	"github.com/glestaris/ice-clique/scheduler"
+	"github.com/glestaris/clique/dispatcher"
+	"github.com/glestaris/clique/scheduler"
 )
 
 type FakeScheduler struct {

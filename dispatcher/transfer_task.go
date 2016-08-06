@@ -5,14 +5,14 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/glestaris/ice-clique/api"
-	"github.com/glestaris/ice-clique/scheduler"
-	"github.com/glestaris/ice-clique/transfer"
+	"github.com/glestaris/clique/api"
+	"github.com/glestaris/clique/scheduler"
+	"github.com/glestaris/clique/transfer"
 )
 
 type TransferTask struct {
 	Server       Interruptible
-	Transferrer   Transferrer
+	Transferrer  Transferrer
 	TransferSpec transfer.TransferSpec
 
 	Registry ApiRegistry
