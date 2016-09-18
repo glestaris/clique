@@ -22,20 +22,14 @@ save-deps:
 ./build/clique-agent: setup
 	go build -o ./build/clique-agent ./cmd/clique-agent/...
 
-clique-docker:
-	docker build -t glestaris/clique .
-
-./build/linux/clique-agent: clique-docker
-	docker run --name="clique-builder" \
-		glestaris/clique \
-		make
+./build/linux/clique-agent: setup
 	mkdir -p build/linux
-	docker cp \
-		clique-builder:/go/src/github.com/glestaris/clique/build/clique-agent \
-		./build/linux/clique-agent
-	docker rm clique-builder
+	GOOS=linux go build -o ./build/linux/clique-agent ./cmd/clique-agent/...
 
 linux: ./build/linux/clique-agent
+
+clique-docker:
+	docker build -t glestaris/clique .
 
 linux-test: clique-docker
 	docker run --name="clique-tester" \
