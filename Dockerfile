@@ -1,4 +1,4 @@
-FROM golang:1.5
+FROM golang:1.7
 
 ADD . /go/src/github.com/glestaris/clique
 WORKDIR /go/src/github.com/glestaris/clique
