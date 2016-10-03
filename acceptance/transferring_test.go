@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/glestaris/clique/acceptance/runner"
-	"github.com/glestaris/clique/config"
-	"github.com/glestaris/clique/transfer"
+	"github.com/ice-stuff/clique/acceptance/runner"
+	"github.com/ice-stuff/clique/config"
+	"github.com/ice-stuff/clique/transfer"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

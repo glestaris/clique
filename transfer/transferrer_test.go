@@ -4,7 +4,7 @@ import (
 	"net"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/glestaris/clique/transfer"
+	"github.com/ice-stuff/clique/transfer"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

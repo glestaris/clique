@@ -3,7 +3,7 @@ package scheduler_test
 import (
 	"math"
 
-	"github.com/glestaris/clique/scheduler"
+	"github.com/ice-stuff/clique/scheduler"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

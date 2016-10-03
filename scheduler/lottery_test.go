@@ -1,8 +1,8 @@
 package scheduler_test
 
 import (
-	"github.com/glestaris/clique/scheduler"
-	"github.com/glestaris/clique/scheduler/fakes"
+	"github.com/ice-stuff/clique/scheduler"
+	"github.com/ice-stuff/clique/scheduler/fakes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

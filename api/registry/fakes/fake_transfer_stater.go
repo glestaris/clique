@@ -4,8 +4,8 @@ package fakes
 import (
 	"sync"
 
-	"github.com/glestaris/clique/api"
-	"github.com/glestaris/clique/api/registry"
+	"github.com/ice-stuff/clique/api"
+	"github.com/ice-stuff/clique/api/registry"
 )
 
 type FakeTransferStater struct {

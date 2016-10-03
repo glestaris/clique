@@ -4,7 +4,7 @@ package fakes
 import (
 	"sync"
 
-	"github.com/glestaris/clique/scheduler"
+	"github.com/ice-stuff/clique/scheduler"
 )
 
 type FakeTaskSelector struct {

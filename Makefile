@@ -29,20 +29,20 @@ save-deps:
 linux: ./build/linux/clique-agent
 
 clique-docker:
-	docker build -t glestaris/clique .
+	docker build -t ice-stuff/clique .
 
 linux-test: clique-docker
 	docker run --name="clique-tester" \
-		glestaris/clique \
+		ice-stuff/clique \
 		make test
 	docker rm clique-tester
 
 linux-save-deps: clique-docker
 	docker run --name="clique-deps-saver" \
-		glestaris/clique \
+		ice-stuff/clique \
 		make save-deps
 	docker cp \
-		clique-deps-saver:/go/src/github.com/glestaris/clique/Godeps \
+		clique-deps-saver:/go/src/github.com/ice-stuff/clique/Godeps \
 		.
 	docker rm clique-deps-saver
 

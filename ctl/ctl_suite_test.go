@@ -23,7 +23,7 @@ func TestExperiment(t *testing.T) {
 		var s sbsState
 
 		path, err := gexec.Build(
-			"github.com/glestaris/clique/cmd/clique-agent",
+			"github.com/ice-stuff/clique/cmd/clique-agent",
 		)
 		Expect(err).NotTo(HaveOccurred())
 		s.CliqueAgentBin = path

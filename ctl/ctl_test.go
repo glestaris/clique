@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/glestaris/clique/config"
+	"github.com/ice-stuff/clique/config"
 	"github.com/glestaris/devoops"
 	. "github.com/glestaris/devoops/matchers"
 	. "github.com/onsi/ginkgo"

@@ -1,6 +1,6 @@
 # Clique
 
-[![Build Status](https://travis-ci.org/glestaris/clique.svg?branch=master)](https://travis-ci.org/glestaris/clique)
+[![Build Status](https://travis-ci.org/ice-stuff/clique.svg?branch=master)](https://travis-ci.org/ice-stuff/clique)
 
 Network performance measurements in a clique.
 

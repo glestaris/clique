@@ -4,7 +4,7 @@ import (
 	"net"
 	"sync"
 
-	"github.com/glestaris/clique/api"
+	"github.com/ice-stuff/clique/api"
 )
 
 //go:generate counterfeiter . TransferStater

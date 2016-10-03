@@ -5,9 +5,9 @@ import (
 	"net"
 	"time"
 
-	"github.com/glestaris/clique/api"
-	"github.com/glestaris/clique/api/registry"
-	"github.com/glestaris/clique/api/registry/fakes"
+	"github.com/ice-stuff/clique/api"
+	"github.com/ice-stuff/clique/api/registry"
+	"github.com/ice-stuff/clique/api/registry/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

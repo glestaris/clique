@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/glestaris/clique"
+	"github.com/ice-stuff/clique"
 	"github.com/labstack/echo"
 )
 

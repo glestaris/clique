@@ -4,9 +4,9 @@ import (
 	"net"
 	"time"
 
-	"github.com/glestaris/clique/acceptance/runner"
-	"github.com/glestaris/clique/api"
-	"github.com/glestaris/clique/config"
+	"github.com/ice-stuff/clique/acceptance/runner"
+	"github.com/ice-stuff/clique/api"
+	"github.com/ice-stuff/clique/config"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

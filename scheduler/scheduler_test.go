@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/glestaris/clique/scheduler"
-	"github.com/glestaris/clique/scheduler/fakes"
+	"github.com/ice-stuff/clique/scheduler"
+	"github.com/ice-stuff/clique/scheduler/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pivotal-golang/clock/fakeclock"

@@ -14,8 +14,8 @@ import (
 
 	"testing"
 
-	"github.com/glestaris/clique/acceptance/runner"
-	"github.com/glestaris/clique/config"
+	"github.com/ice-stuff/clique/acceptance/runner"
+	"github.com/ice-stuff/clique/config"
 )
 
 var cliqueAgentBin string
@@ -31,7 +31,7 @@ func TestAcceptance(t *testing.T) {
 		var s sbsState
 
 		path, err := gexec.Build(
-			"github.com/glestaris/clique/cmd/clique-agent",
+			"github.com/ice-stuff/clique/cmd/clique-agent",
 		)
 		Expect(err).NotTo(HaveOccurred())
 		s.CliqueAgentBin = path

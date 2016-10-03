@@ -3,7 +3,7 @@ package runner
 import (
 	"os"
 
-	"github.com/glestaris/clique/config"
+	"github.com/ice-stuff/clique/config"
 	"github.com/onsi/gomega/gbytes"
 )
 

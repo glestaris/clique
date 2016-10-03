@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/glestaris/clique/api"
-	"github.com/glestaris/clique/dispatcher"
-	"github.com/glestaris/clique/dispatcher/fakes"
-	"github.com/glestaris/clique/scheduler"
-	"github.com/glestaris/clique/transfer"
+	"github.com/ice-stuff/clique/api"
+	"github.com/ice-stuff/clique/dispatcher"
+	"github.com/ice-stuff/clique/dispatcher/fakes"
+	"github.com/ice-stuff/clique/scheduler"
+	"github.com/ice-stuff/clique/transfer"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

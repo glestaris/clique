@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/glestaris/clique/api"
-	"github.com/glestaris/clique/scheduler"
-	"github.com/glestaris/clique/transfer"
+	"github.com/ice-stuff/clique/api"
+	"github.com/ice-stuff/clique/scheduler"
+	"github.com/ice-stuff/clique/transfer"
 )
 
 type TransferTask struct {

@@ -4,8 +4,8 @@ package fakes
 import (
 	"sync"
 
-	"github.com/glestaris/clique/dispatcher"
-	"github.com/glestaris/clique/transfer"
+	"github.com/ice-stuff/clique/dispatcher"
+	"github.com/ice-stuff/clique/transfer"
 )
 
 type FakeTransferrer struct {
