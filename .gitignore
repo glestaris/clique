@@ -1,3 +1,6 @@
+# Dependencies
+/vendor
+
 # Artifacts
 *.test
 /build

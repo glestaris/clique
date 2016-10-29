@@ -2,14 +2,14 @@ package api
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net"
-	"net/http"
 	"sync"
 
 	"github.com/ice-stuff/clique"
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/engine"
+	"github.com/labstack/echo/engine/standard"
 )
 
 //go:generate counterfeiter . Registry
@@ -40,8 +40,7 @@ type ServerError struct {
 type Server struct {
 	addr string
 
-	listener   net.Listener
-	httpServer *http.Server
+	httpServer engine.Server
 
 	registry        Registry
 	transferCreator TransferCreator
@@ -70,21 +69,22 @@ func NewServer(
 	e.Get("/transfer_results", s.handleGetTransferResults)
 	e.Get("/transfer_results/:IP", s.handleGetTransferResultsByIP)
 	e.Post("/transfers", s.handlePostTransfers)
-	s.httpServer = e.Server(addr)
-	s.httpServer.SetKeepAlivesEnabled(false)
+
+	s.httpServer = standard.New(addr)
+	s.httpServer.SetHandler(e)
 
 	return s
 }
 
-func (s *Server) handleGetPing(c *echo.Context) error {
+func (s *Server) handleGetPing(c echo.Context) error {
 	return c.String(200, "")
 }
 
-func (s *Server) handleGetVersion(c *echo.Context) error {
+func (s *Server) handleGetVersion(c echo.Context) error {
 	return c.String(200, clique.CliqueAgentVersion)
 }
 
-func (s *Server) handleGetTransfers(c *echo.Context) error {
+func (s *Server) handleGetTransfers(c echo.Context) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -95,13 +95,13 @@ func (s *Server) handleGetTransfers(c *echo.Context) error {
 	return c.JSON(200, res)
 }
 
-func (s *Server) handleGetTransferResults(c *echo.Context) error {
+func (s *Server) handleGetTransferResults(c echo.Context) error {
 	res := s.registry.TransferResults()
 
 	return c.JSON(200, res)
 }
 
-func (s *Server) handleGetTransferResultsByIP(c *echo.Context) error {
+func (s *Server) handleGetTransferResultsByIP(c echo.Context) error {
 	ip := net.ParseIP(c.Param("IP"))
 
 	res := s.registry.TransferResultsByIP(ip)
@@ -109,9 +109,9 @@ func (s *Server) handleGetTransferResultsByIP(c *echo.Context) error {
 	return c.JSON(200, res)
 }
 
-func (s *Server) handlePostTransfers(c *echo.Context) error {
+func (s *Server) handlePostTransfers(c echo.Context) error {
 	req := c.Request()
-	decoder := json.NewDecoder(req.Body)
+	decoder := json.NewDecoder(req.Body())
 
 	var spec TransferSpec
 	if err := decoder.Decode(&spec); err != nil {
@@ -130,31 +130,9 @@ func (s *Server) handlePostTransfers(c *echo.Context) error {
 }
 
 func (s *Server) Serve() error {
-	var err error
-
-	s.lock.Lock()
-	s.listener, err = net.Listen("tcp", s.addr)
-	s.lock.Unlock()
-
-	if err != nil {
-		return fmt.Errorf("listening to address '%s': %s", s.addr, err)
-	}
-
-	s.httpServer.Serve(s.listener)
-
-	return nil
+	return s.httpServer.Start()
 }
 
 func (s *Server) Close() error {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-
-	if s.listener == nil {
-		return errors.New("server is closed already")
-	}
-
-	s.listener.Close()
-	s.listener = nil
-
-	return nil
+	return s.httpServer.Stop()
 }

@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"code.cloudfoundry.org/clock"
 	"github.com/Sirupsen/logrus"
 	"github.com/ice-stuff/clique"
 	"github.com/ice-stuff/clique/api"
@@ -19,7 +20,6 @@ import (
 	"github.com/ice-stuff/clique/dispatcher"
 	"github.com/ice-stuff/clique/scheduler"
 	"github.com/ice-stuff/clique/transfer"
-	"github.com/pivotal-golang/clock"
 )
 
 var (

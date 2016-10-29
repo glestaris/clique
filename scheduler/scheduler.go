@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
+	"code.cloudfoundry.org/clock"
 	"github.com/Sirupsen/logrus"
-	"github.com/pivotal-golang/clock"
 )
 
 type TaskState int

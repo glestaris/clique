@@ -1,0 +1,21 @@
+package: github.com/ice-stuff/clique
+import:
+- package: github.com/Sirupsen/logrus
+- package: github.com/glestaris/devoops
+  subpackages:
+  - matchers
+- package: github.com/labstack/echo
+- package: github.com/onsi/ginkgo
+  subpackages:
+  - extensions/table
+- package: github.com/onsi/gomega
+  subpackages:
+  - gexec
+  - gbytes
+- package: code.cloudfoundry.org/clock
+  subpackages:
+  - fakeclock
+- package: github.com/shirou/gopsutil
+  subpackages:
+  - process
+- package: gopkg.in/yaml.v2

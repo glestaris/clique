@@ -1,27 +1,29 @@
-.PHONY: linux clean setup \
-	all test save-deps \
+.PHONY: linux clean \
+	all go-vet test \
+	deps update-deps \
 	linux
 
 all: ./build/clique-agent
 
-setup:
-	go get github.com/tools/godep
-	godep restore
+go-vet:
+	go vet `go list ./... | grep -v vendor`
 
-test: setup
+test:
 	go install github.com/onsi/ginkgo/ginkgo
 	ginkgo -randomizeAllSpecs -p acceptance
-	ginkgo -randomizeAllSpecs -randomizeSuites -r -p -race -skipPackage acceptance,ctl
+	ginkgo -randomizeAllSpecs -randomizeSuites -r -p -race -skipPackage acceptance,ctl,vendor
 	ginkgo -randomizeAllSpecs ctl
 
-save-deps:
-	go get github.com/tools/godep
-	godep save ./...
+deps:
+	glide install
 
-./build/clique-agent: setup
+update-deps:
+	glide update
+
+./build/clique-agent:
 	go build -o ./build/clique-agent ./cmd/clique-agent/...
 
-./build/linux/clique-agent: setup
+./build/linux/clique-agent:
 	mkdir -p build/linux
 	GOOS=linux go build -o ./build/linux/clique-agent ./cmd/clique-agent/...
 
