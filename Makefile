@@ -1,7 +1,6 @@
 .PHONY: linux clean setup \
 	all test save-deps \
-	linux linux-test linux-save-deps \
-  clique-docker
+	linux
 
 all: ./build/clique-agent
 
@@ -27,24 +26,6 @@ save-deps:
 	GOOS=linux go build -o ./build/linux/clique-agent ./cmd/clique-agent/...
 
 linux: ./build/linux/clique-agent
-
-clique-docker:
-	docker build -t ice-stuff/clique .
-
-linux-test: clique-docker
-	docker run --name="clique-tester" \
-		ice-stuff/clique \
-		make test
-	docker rm clique-tester
-
-linux-save-deps: clique-docker
-	docker run --name="clique-deps-saver" \
-		ice-stuff/clique \
-		make save-deps
-	docker cp \
-		clique-deps-saver:/go/src/github.com/ice-stuff/clique/Godeps \
-		.
-	docker rm clique-deps-saver
 
 clean:
 	rm -Rf ./build
