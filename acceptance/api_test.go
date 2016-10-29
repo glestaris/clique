@@ -1,6 +1,7 @@
 package acceptance_test
 
 import (
+	"math/rand"
 	"net"
 	"time"
 
@@ -22,8 +23,8 @@ var _ = Describe("Api", func() {
 	BeforeEach(func() {
 		var err error
 
-		tPort = uint16(5000 + GinkgoParallelNode())
-		aPort = uint16(6000 + GinkgoParallelNode())
+		tPort = uint16(5000 + rand.Intn(101) + GinkgoParallelNode())
+		aPort = uint16(6000 + rand.Intn(101) + GinkgoParallelNode())
 
 		clique, err = startClique(config.Config{
 			TransferPort: tPort,
@@ -56,8 +57,8 @@ var _ = Describe("Api", func() {
 		BeforeEach(func() {
 			var err error
 
-			tPortSecond = uint16(5100 + GinkgoParallelNode())
-			aPortSecond = uint16(6100 + GinkgoParallelNode())
+			tPortSecond = uint16(5100 + rand.Intn(101) + GinkgoParallelNode())
+			aPortSecond = uint16(6100 + rand.Intn(101) + GinkgoParallelNode())
 
 			cliqueSecond, err = startClique(config.Config{
 				TransferPort: tPortSecond,

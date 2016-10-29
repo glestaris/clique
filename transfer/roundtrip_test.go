@@ -1,6 +1,7 @@
 package transfer_test
 
 import (
+	"math/rand"
 	"net"
 	"time"
 
@@ -29,7 +30,7 @@ var _ = Describe("Roundtrip", func() {
 			Formatter: new(logrus.TextFormatter),
 		}
 
-		port = 5000 + uint16(GinkgoParallelNode())
+		port = uint16(5000 + rand.Intn(101) + GinkgoParallelNode())
 
 		server, err = transfer.NewServer(logger, port)
 		Expect(err).NotTo(HaveOccurred())

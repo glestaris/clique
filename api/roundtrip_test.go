@@ -1,6 +1,7 @@
 package api_test
 
 import (
+	"math/rand"
 	"net"
 	"time"
 
@@ -23,7 +24,7 @@ var _ = Describe("Roundtrip", func() {
 	)
 
 	BeforeEach(func() {
-		port = uint16(6010 + GinkgoParallelNode())
+		port = uint16(6010 + rand.Intn(101) + GinkgoParallelNode())
 
 		fakeRegistry = new(fakes.FakeRegistry)
 		fakeTransferCreator = new(fakes.FakeTransferCreator)

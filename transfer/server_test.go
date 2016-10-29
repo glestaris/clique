@@ -3,6 +3,7 @@ package transfer_test
 import (
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net"
 
 	"github.com/Sirupsen/logrus"
@@ -33,7 +34,7 @@ var _ = Describe("Server", func() {
 		BeforeEach(func() {
 			var err error
 
-			port = 5000 + uint16(GinkgoParallelNode())
+			port = uint16(5000 + rand.Intn(101) + GinkgoParallelNode())
 
 			server, err = transfer.NewServer(logger, port)
 			Expect(err).NotTo(HaveOccurred())

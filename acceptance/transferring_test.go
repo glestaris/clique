@@ -2,6 +2,7 @@ package acceptance_test
 
 import (
 	"fmt"
+	"math/rand"
 	"net"
 	"time"
 
@@ -33,7 +34,7 @@ var _ = Describe("Single transferring", func() {
 			},
 		}
 
-		port = uint16(5000 + GinkgoParallelNode())
+		port = uint16(5000 + rand.Intn(101) + GinkgoParallelNode())
 
 		proc, err = startClique(config.Config{
 			TransferPort: port,
@@ -95,27 +96,30 @@ var _ = Describe("Single transferring", func() {
 
 var _ = Describe("Clique", func() {
 	var (
-		procA, procB *runner.ClqProcess
-		hosts        []string
+		tPortA, tPortB uint16
+		procA, procB   *runner.ClqProcess
+		hosts          []string
 	)
 
 	BeforeEach(func() {
 		var err error
 
+		tPortA = uint16(5000 + rand.Intn(101) + GinkgoParallelNode())
+		tPortB = uint16(5100 + rand.Intn(101) + GinkgoParallelNode())
 		hosts = []string{
-			fmt.Sprintf("127.0.0.1:%d", 5000+GinkgoParallelNode()),
-			fmt.Sprintf("127.0.0.1:%d", 5100+GinkgoParallelNode()),
+			fmt.Sprintf("127.0.0.1:%d", tPortA),
+			fmt.Sprintf("127.0.0.1:%d", tPortB),
 		}
 
 		procA, err = startClique(config.Config{
-			TransferPort:     uint16(5000 + GinkgoParallelNode()),
+			TransferPort:     tPortA,
 			RemoteHosts:      []string{hosts[1]},
 			InitTransferSize: 1 * 1024 * 1024,
 		}, "-debug")
 		Expect(err).NotTo(HaveOccurred())
 
 		procB, err = startClique(config.Config{
-			TransferPort:     uint16(5100 + GinkgoParallelNode()),
+			TransferPort:     tPortB,
 			RemoteHosts:      []string{hosts[0]},
 			InitTransferSize: 1 * 1024 * 1024,
 		}, "-debug")
@@ -135,14 +139,14 @@ var _ = Describe("Clique", func() {
 		Expect(procACont).To(ContainSubstring("Incoming transfer is completed"))
 		Expect(procACont).To(ContainSubstring("Outgoing transfer is completed"))
 		Expect(procACont).To(ContainSubstring(
-			fmt.Sprintf("127.0.0.1:%d", 5100+GinkgoParallelNode()),
+			fmt.Sprintf("127.0.0.1:%d", tPortB),
 		))
 
 		procBCont := procB.Buffer.Contents()
 		Expect(procBCont).To(ContainSubstring("Incoming transfer is completed"))
 		Expect(procBCont).To(ContainSubstring("Outgoing transfer is completed"))
 		Expect(procBCont).To(ContainSubstring(
-			fmt.Sprintf("127.0.0.1:%d", 5000+GinkgoParallelNode()),
+			fmt.Sprintf("127.0.0.1:%d", tPortA),
 		))
 	})
 })
