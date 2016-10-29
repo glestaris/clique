@@ -42,15 +42,6 @@ var _ = Describe("Roundtrip", func() {
 				Expect(client.Ping()).NotTo(Succeed())
 			})
 		})
-
-		Describe("Server#Serve", func() {
-			Context("when the port is invalid", func() {
-				It("should return an error", func() {
-					server := api.NewServer(12, nil, nil)
-					Expect(server.Serve()).NotTo(Succeed())
-				})
-			})
-		})
 	})
 
 	Context("when the server is started", func() {
@@ -91,6 +82,13 @@ var _ = Describe("Roundtrip", func() {
 				It("should return an error", func() {
 					Expect(client.Ping()).NotTo(Succeed())
 				})
+			})
+		})
+
+		Context("and another server tries to use the same port", func() {
+			It("should return an error", func() {
+				server := api.NewServer(port, nil, nil)
+				Expect(server.Serve()).NotTo(Succeed())
 			})
 		})
 

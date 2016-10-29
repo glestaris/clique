@@ -23,15 +23,6 @@ var _ = Describe("Server", func() {
 		}
 	})
 
-	Describe("NewServer", func() {
-		Context("when the port is too low", func() {
-			It("should return an error", func() {
-				_, err := transfer.NewServer(logger, 16)
-				Expect(err).To(HaveOccurred())
-			})
-		})
-	})
-
 	Describe("Serve", func() {
 		var (
 			port     uint16
@@ -63,6 +54,13 @@ var _ = Describe("Server", func() {
 			conn, err := net.Dial("tcp", fmt.Sprintf("127.0.0.1:%d", port))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(conn.Close()).To(Succeed())
+		})
+
+		Context("when calling serve in the same port", func() {
+			It("should return an error", func() {
+				_, err := transfer.NewServer(logger, port)
+				Expect(err).To(HaveOccurred())
+			})
 		})
 
 		Context("when the server is busy", func() {
