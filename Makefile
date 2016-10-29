@@ -9,7 +9,6 @@ go-vet:
 	go vet `go list ./... | grep -v vendor`
 
 test:
-	go install github.com/onsi/ginkgo/ginkgo
 	ginkgo -randomizeAllSpecs -p acceptance
 	ginkgo -randomizeAllSpecs -randomizeSuites -r -p -race -skipPackage acceptance,ctl,vendor
 	ginkgo -randomizeAllSpecs ctl
