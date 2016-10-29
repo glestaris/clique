@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math/rand"
 	"net"
-	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/ice-stuff/clique/acceptance/runner"
@@ -67,12 +66,15 @@ var _ = Describe("Single transferring", func() {
 
 				c <- "started"
 
-				_, err := transferrer.Transfer(transfer.TransferSpec{
-					IP:   net.ParseIP("127.0.0.1"),
-					Port: port,
-					Size: 20 * 1024 * 1024,
-				})
-				Expect(err).NotTo(HaveOccurred())
+				Eventually(func() error {
+					_, err := transferrer.Transfer(transfer.TransferSpec{
+						IP:   net.ParseIP("127.0.0.1"),
+						Port: port,
+						Size: 10 * 1024 * 1024,
+					})
+
+					return err
+				}).Should(Succeed())
 
 				close(c)
 			}(transferStateCh)
@@ -80,14 +82,16 @@ var _ = Describe("Single transferring", func() {
 
 		It("should reject the second one", func() {
 			Eventually(transferStateCh).Should(Receive())
-			time.Sleep(time.Millisecond * 200) // synchronizing the requests
 
-			_, err := transferrer.Transfer(transfer.TransferSpec{
-				IP:   net.ParseIP("127.0.0.1"),
-				Port: port,
-				Size: 10 * 1024 * 1024,
-			})
-			Expect(err).To(HaveOccurred())
+			Eventually(func() error {
+				_, err := transferrer.Transfer(transfer.TransferSpec{
+					IP:   net.ParseIP("127.0.0.1"),
+					Port: port,
+					Size: 10 * 1024 * 1024,
+				})
+
+				return err
+			}).Should(HaveOccurred())
 
 			Eventually(transferStateCh, "15s").Should(BeClosed())
 		})
