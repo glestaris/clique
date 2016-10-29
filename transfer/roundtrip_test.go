@@ -82,7 +82,7 @@ var _ = Describe("Roundtrip", func() {
 					endTime = time.Now()
 
 					return err
-				}, transfer.ErrServerIsBusy, 5, time.Millisecond,
+				}, transfer.ErrServerIsBusy, 20, 200*time.Millisecond,
 			)).To(Succeed())
 
 			duration := endTime.Sub(startTime)
