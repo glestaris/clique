@@ -126,15 +126,14 @@ var _ = Describe("Clique", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
-	AfterEach(func() {
-		Expect(procA.Stop()).To(Succeed())
-		Expect(procB.Stop()).To(Succeed())
-	})
-
 	It("should print the clique result", func() {
 		// wait to finish
 		Eventually(procA.Buffer, 2.0).Should(gbytes.Say("new_state=done"))
 		Eventually(procB.Buffer, 2.0).Should(gbytes.Say("new_state=done"))
+
+		// exit to make sure all logs get pushed
+		Expect(procA.Stop()).To(Succeed())
+		Expect(procB.Stop()).To(Succeed())
 
 		// grab contents
 		procACont := string(procA.Buffer.Contents())
