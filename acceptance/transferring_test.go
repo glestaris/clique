@@ -132,17 +132,20 @@ var _ = Describe("Clique", func() {
 	})
 
 	It("should print the clique result", func() {
+		// wait to finish
 		Eventually(procA.Buffer, 2.0).Should(gbytes.Say("new_state=done"))
-		Eventually(procB.Buffer).Should(gbytes.Say("new_state=done"))
+		Eventually(procB.Buffer, 2.0).Should(gbytes.Say("new_state=done"))
 
-		procACont := procA.Buffer.Contents()
+		// grab contents
+		procACont := string(procA.Buffer.Contents())
+		procBCont := string(procB.Buffer.Contents())
+
 		Expect(procACont).To(ContainSubstring("Incoming transfer is completed"))
 		Expect(procACont).To(ContainSubstring("Outgoing transfer is completed"))
 		Expect(procACont).To(ContainSubstring(
 			fmt.Sprintf("127.0.0.1:%d", tPortB),
 		))
 
-		procBCont := procB.Buffer.Contents()
 		Expect(procBCont).To(ContainSubstring("Incoming transfer is completed"))
 		Expect(procBCont).To(ContainSubstring("Outgoing transfer is completed"))
 		Expect(procBCont).To(ContainSubstring(
