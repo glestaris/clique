@@ -2,34 +2,37 @@ package runner
 
 import (
 	"os"
+	"os/exec"
 
 	"github.com/ice-stuff/clique/config"
 	"github.com/onsi/gomega/gbytes"
 )
 
 type ClqProcess struct {
-	Process       *os.Process
+	Cmd           *exec.Cmd
 	Buffer        *gbytes.Buffer
 	Config        config.Config
 	ConfigDirPath string
 }
 
 func NewClqProcess(
-	proc *os.Process,
+	cmd *exec.Cmd,
 	cfg config.Config,
 	cfgDirPath string,
 ) *ClqProcess {
 	return &ClqProcess{
-		Process:       proc,
+		Cmd:           cmd,
 		Config:        cfg,
 		ConfigDirPath: cfgDirPath,
 	}
 }
 
 func (c *ClqProcess) Stop() error {
-	if err := c.Process.Kill(); err != nil {
+	if err := c.Cmd.Process.Kill(); err != nil {
 		return err
 	}
+
+	c.Cmd.Wait()
 
 	if err := os.RemoveAll(c.ConfigDirPath); err != nil {
 		return err

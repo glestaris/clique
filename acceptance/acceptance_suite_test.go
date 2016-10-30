@@ -87,7 +87,7 @@ func startClique(cfg config.Config, args ...string) (*runner.ClqProcess, error) 
 	Eventually(buffer).Should(gbytes.Say("Clique Agent"))
 
 	return &runner.ClqProcess{
-		Process:       cmd.Process,
+		Cmd:           cmd,
 		Buffer:        buffer,
 		Config:        cfg,
 		ConfigDirPath: configFilePath,
