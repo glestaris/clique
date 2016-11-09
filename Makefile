@@ -1,17 +1,23 @@
-.PHONY: linux clean \
-	all go-vet test \
+.PHONY: all \
+	help \
 	deps update-deps \
-	linux
+	test lint \
+	clean
 
-all: ./build/clique-agent
+clique-agent:
+	CGO_ENABLED=0 go build -ldflags "-s -d -w" -o clique-agent ./cmd/clique-agent
 
-go-vet:
-	go vet `go list ./... | grep -v vendor`
+###### Help ###################################################################
 
-test:
-	ginkgo -randomizeAllSpecs -p acceptance
-	ginkgo -randomizeAllSpecs -randomizeSuites -r -p -race -skipPackage acceptance,ctl,vendor
-	ginkgo -randomizeAllSpecs ctl
+help:
+	@echo '    all ................................. builds the grootfs cli'
+	@echo '    deps ................................ installs dependencies'
+	@echo '    update-deps ......................... updates dependencies'
+	@echo '    test ................................ runs tests'
+	@echo '    lint ................................ lint the Go code'
+	@echo '    clean ............................... clean the built artifact'
+
+###### Dependencies ###########################################################
 
 deps:
 	glide install
@@ -19,14 +25,19 @@ deps:
 update-deps:
 	glide update
 
-./build/clique-agent:
-	go build -o ./build/clique-agent ./cmd/clique-agent/...
+###### Testing ################################################################
 
-./build/linux/clique-agent:
-	mkdir -p build/linux
-	GOOS=linux go build -o ./build/linux/clique-agent ./cmd/clique-agent/...
+test:
+	ginkgo -randomizeAllSpecs -p acceptance
+	ginkgo -randomizeAllSpecs -randomizeSuites -r -p -race -skipPackage acceptance,ctl,vendor
+	ginkgo -randomizeAllSpecs ctl
 
-linux: ./build/linux/clique-agent
+###### Code quality ###########################################################
+
+lint:
+	go vet `go list ./... | grep -v vendor`
+
+###### Cleanup ################################################################
 
 clean:
-	rm -Rf ./build
+	rm -Rf ./clique-agent
