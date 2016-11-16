@@ -16,3 +16,9 @@ type TransferResults struct {
 	Checksum  uint32
 	BytesSent uint32
 }
+
+// Only for testing
+//go:generate counterfeiter . Listener
+type Listener interface {
+	net.Listener
+}

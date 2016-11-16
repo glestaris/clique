@@ -1,20 +1,30 @@
 package transfer_test
 
 import (
-	"fmt"
-	"io/ioutil"
-	"math/rand"
+	"errors"
+	"io"
 	"net"
+	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/ice-stuff/clique/transfer"
+	"github.com/ice-stuff/clique/transfer/fakes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Server", func() {
-	var logger *logrus.Logger
+	var (
+		logger               *logrus.Logger
+		fakeListener         *fakes.FakeListener
+		fakeTransferReceiver *fakes.FakeTransferReceiver
+		server               *transfer.Server
+
+		listenerConnChan chan net.Conn
+		listenerErrChan  chan error
+		serverClosed     chan struct{}
+	)
 
 	BeforeEach(func() {
 		logger = &logrus.Logger{
@@ -22,154 +32,88 @@ var _ = Describe("Server", func() {
 			Level:     logrus.DebugLevel,
 			Formatter: new(logrus.TextFormatter),
 		}
+		fakeListener = new(fakes.FakeListener)
+		fakeTransferReceiver = new(fakes.FakeTransferReceiver)
+		server = transfer.NewServer(logger, fakeListener, fakeTransferReceiver)
+
+		listenerConnChan = make(chan net.Conn, 100)
+		listenerErrChan = make(chan error)
+		fakeListener.AcceptStub = func() (net.Conn, error) {
+			select {
+			case conn := <-listenerConnChan:
+				return conn, nil
+			case err := <-listenerErrChan:
+				return nil, err
+			}
+		}
+	})
+
+	JustBeforeEach(func() {
+		serverClosed = make(chan struct{})
+		go func() {
+			server.Serve()
+			close(serverClosed)
+		}()
+	})
+
+	AfterEach(func() {
+		listenerErrChan <- errors.New("close now!")
+		Eventually(serverClosed).Should(BeClosed())
+		close(listenerConnChan)
+		close(listenerErrChan)
 	})
 
 	Describe("Serve", func() {
-		var (
-			port     uint16
-			server   *transfer.Server
-			serverCh chan struct{}
-		)
+		It("should accept a connection", func() {
+			conn, _ := net.Pipe()
+			listenerConnChan <- conn
+
+			Eventually(fakeListener.AcceptCallCount).Should(Equal(2))
+			// 2 = one received connection and one blocking call
+		})
+
+		It("should process the connection", func() {
+			pushedConn, _ := net.Pipe()
+			listenerConnChan <- pushedConn
+
+			Eventually(fakeTransferReceiver.ReceiveTransferCallCount).Should(Equal(1))
+			Expect(fakeTransferReceiver.ReceiveTransferArgsForCall(0)).To(
+				Equal(pushedConn),
+			)
+		})
+	})
+
+	Describe("LastTransfer", func() {
+		var resultsChan chan transfer.TransferResults
 
 		BeforeEach(func() {
-			var err error
-
-			port = uint16(5000 + rand.Intn(101) + GinkgoParallelNode())
-
-			server, err = transfer.NewServer(logger, port)
-			Expect(err).NotTo(HaveOccurred())
-
-			serverCh = make(chan struct{})
-			go func() {
-				server.Serve()
-				close(serverCh)
-			}()
+			resultsChan = make(chan transfer.TransferResults, 100)
+			fakeTransferReceiver.ReceiveTransferStub = func(_ io.ReadWriter) (
+				transfer.TransferResults, error,
+			) {
+				return <-resultsChan, nil
+			}
 		})
 
 		AfterEach(func() {
-			Expect(server.Close()).To(Succeed())
-			Eventually(serverCh).Should(BeClosed())
+			close(resultsChan)
 		})
 
-		It("should listen to the provided port", func() {
-			conn, err := net.Dial("tcp", fmt.Sprintf("127.0.0.1:%d", port))
-			Expect(err).NotTo(HaveOccurred())
-			Expect(conn.Close()).To(Succeed())
-		})
+		It("blocks until a transfer is handled by the server", func() {
+			conn, _ := net.Pipe()
+			listenerConnChan <- conn
 
-		Context("when calling serve in the same port", func() {
-			It("should return an error", func() {
-				_, err := transfer.NewServer(logger, port)
-				Expect(err).To(HaveOccurred())
-			})
-		})
+			receivedResultsChan := make(chan transfer.TransferResults, 100)
+			go func() {
+				receivedResultsChan <- server.LastTransfer()
+			}()
+			Consistently(receivedResultsChan).ShouldNot(Receive())
 
-		Context("when the server is busy", func() {
-			var conn net.Conn
-
-			BeforeEach(func() {
-				var err error
-
-				conn, err = net.Dial("tcp", fmt.Sprintf("127.0.0.1:%d", port))
-				Expect(err).NotTo(HaveOccurred())
-				expectToReadOk(conn)
-			})
-
-			AfterEach(func() {
-				Expect(conn.Close()).To(Succeed())
-			})
-
-			It("should return busy for consecutive transfers", func() {
-				busyConn, err := net.Dial("tcp", fmt.Sprintf("127.0.0.1:%d", port))
-				Expect(err).NotTo(HaveOccurred())
-
-				data, err := ioutil.ReadAll(busyConn)
-				Expect(err).NotTo(HaveOccurred())
-
-				Expect(string(data)).To(Equal("i-am-busy"))
-			})
-		})
-
-		Describe("Interrupt", func() {
-			Context("when the server is paused", func() {
-				BeforeEach(func() {
-					server.Interrupt()
-				})
-
-				It("should make server return busy for transfers", func() {
-					busyConn, err := net.Dial("tcp", fmt.Sprintf("127.0.0.1:%d", port))
-					Expect(err).NotTo(HaveOccurred())
-
-					data, err := ioutil.ReadAll(busyConn)
-					Expect(err).NotTo(HaveOccurred())
-
-					Expect(string(data)).To(Equal("i-am-busy"))
-				})
-			})
-
-			Context("when the server is processing a request", func() {
-				var conn net.Conn
-
-				BeforeEach(func() {
-					var err error
-
-					conn, err = net.Dial("tcp", fmt.Sprintf("127.0.0.1:%d", port))
-					Expect(err).NotTo(HaveOccurred())
-					expectToReadOk(conn)
-				})
-
-				It("should wait until request is done", func() {
-					pauseCh := make(chan bool, 1)
-					go func() {
-						pauseCh <- true
-						server.Interrupt()
-						close(pauseCh)
-					}()
-
-					Eventually(pauseCh).Should(Receive())
-					Expect(pauseCh).NotTo(BeClosed())
-
-					Expect(conn.Close()).To(Succeed())
-
-					Eventually(pauseCh).Should(BeClosed())
-				})
-			})
-
-			Describe("Resume", func() {
-				Context("when a server is paused", func() {
-					BeforeEach(func() {
-						server.Interrupt()
-					})
-
-					It("should make server process requests again", func() {
-						server.Resume()
-
-						conn, err := net.Dial("tcp", fmt.Sprintf("127.0.0.1:%d", port))
-						Expect(err).NotTo(HaveOccurred())
-						expectToReadOk(conn)
-					})
-				})
-			})
-		})
-	})
-
-	Describe("Close", func() {
-		Context("when close is called twice", func() {
-			It("should return an error the second time", func() {
-				server, err := transfer.NewServer(logger, 8080)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(server.Close()).To(Succeed())
-				Expect(server.Close()).NotTo(Succeed())
-			})
+			pushedResults := transfer.TransferResults{
+				Duration: time.Second,
+			}
+			resultsChan <- pushedResults
+			Eventually(receivedResultsChan).Should(Receive(Equal(pushedResults)))
 		})
 	})
 })
-
-func expectToReadOk(conn net.Conn) {
-	data := make([]byte, 1024)
-
-	n, err := conn.Read(data)
-	Expect(err).NotTo(HaveOccurred())
-
-	Expect(string(data[:n])).To(Equal("ok"))
-}

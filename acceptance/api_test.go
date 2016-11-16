@@ -75,30 +75,25 @@ var _ = Describe("Api", func() {
 			Expect(cliqueSecond.Stop()).To(Succeed())
 		})
 
-		It("should transfer to the second clique-agent", func(done Done) {
+		It("should transfer to the second clique-agent", func() {
 			Expect(client.CreateTransfer(api.TransferSpec{
 				IP:   net.ParseIP("127.0.0.1"),
 				Port: tPortSecond,
 				Size: 10 * 1024 * 1024,
 			})).To(Succeed())
 
-			var res api.TransferResults
-			for {
-				resList, err := client.TransferResultsByIP(net.ParseIP("127.0.0.1"))
+			var resList []api.TransferResults
+			Eventually(func() []api.TransferResults {
+				var err error
+				resList, err = client.TransferResultsByIP(net.ParseIP("127.0.0.1"))
 				Expect(err).NotTo(HaveOccurred())
+				return resList
+			}, 5.0).Should(HaveLen(1))
 
-				if len(resList) != 0 {
-					res = resList[0]
-					break
-				}
-				time.Sleep(time.Millisecond * 100)
-			}
-
+			res := resList[0]
 			Expect(res.IP).To(Equal(net.ParseIP("127.0.0.1")))
 			Expect(res.BytesSent).To(BeNumerically("==", 10*1024*1024))
-
-			close(done)
-		}, 5.0)
+		})
 
 		It("should return list of pending transfers", func() {
 			Expect(client.CreateTransfer(api.TransferSpec{
@@ -113,8 +108,10 @@ var _ = Describe("Api", func() {
 				return transfers
 			}
 
+			// momentarily we see one running task
 			Eventually(transferState).Should(HaveLen(1))
 
+			// and then it finishes
 			Eventually(transferState).Should(HaveLen(0))
 		})
 	})

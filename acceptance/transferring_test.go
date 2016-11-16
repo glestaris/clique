@@ -9,6 +9,7 @@ import (
 	"github.com/ice-stuff/clique/acceptance/runner"
 	"github.com/ice-stuff/clique/config"
 	"github.com/ice-stuff/clique/transfer"
+	"github.com/ice-stuff/clique/transfer/simpletransfer"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -17,21 +18,24 @@ import (
 
 var _ = Describe("Single transferring", func() {
 	var (
-		transferrer *transfer.Transferrer
-		proc        *runner.ClqProcess
-		port        uint16
+		transferClient *transfer.Client
+		proc           *runner.ClqProcess
+		port           uint16
 	)
 
 	BeforeEach(func() {
 		var err error
 
-		transferrer = &transfer.Transferrer{
-			Logger: &logrus.Logger{
-				Out:       GinkgoWriter,
-				Formatter: new(logrus.TextFormatter),
-				Level:     logrus.InfoLevel,
-			},
+		logger := &logrus.Logger{
+			Out:       GinkgoWriter,
+			Formatter: new(logrus.TextFormatter),
+			Level:     logrus.InfoLevel,
 		}
+		transferConnector := transfer.NewConnector()
+		transferSender := simpletransfer.NewSender(logger)
+		transferClient = transfer.NewClient(
+			logger, transferConnector, transferSender,
+		)
 
 		port = uint16(5000 + rand.Intn(101) + GinkgoParallelNode())
 
@@ -47,12 +51,25 @@ var _ = Describe("Single transferring", func() {
 	})
 
 	It("should accept transfers", func() {
-		_, err := transferrer.Transfer(transfer.TransferSpec{
+		res, err := transferClient.Transfer(transfer.TransferSpec{
 			IP:   net.ParseIP("127.0.0.1"),
 			Port: port,
 			Size: 10 * 1024 * 1024,
 		})
 		Expect(err).NotTo(HaveOccurred())
+
+		Expect(res.BytesSent).To(BeNumerically("==", 10*1024*1024))
+	})
+
+	It("should populate the duration", func() {
+		res, err := transferClient.Transfer(transfer.TransferSpec{
+			IP:   net.ParseIP("127.0.0.1"),
+			Port: port,
+			Size: 10 * 1024 * 1024,
+		})
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(res.Duration).NotTo(BeZero())
 	})
 
 	Context("when trying to run two transfers to the same server", func() {
@@ -67,7 +84,7 @@ var _ = Describe("Single transferring", func() {
 				c <- "started"
 
 				Eventually(func() error {
-					_, err := transferrer.Transfer(transfer.TransferSpec{
+					_, err := transferClient.Transfer(transfer.TransferSpec{
 						IP:   net.ParseIP("127.0.0.1"),
 						Port: port,
 						Size: 10 * 1024 * 1024,
@@ -84,10 +101,10 @@ var _ = Describe("Single transferring", func() {
 			Eventually(transferStateCh).Should(Receive())
 
 			Eventually(func() error {
-				_, err := transferrer.Transfer(transfer.TransferSpec{
+				_, err := transferClient.Transfer(transfer.TransferSpec{
 					IP:   net.ParseIP("127.0.0.1"),
 					Port: port,
-					Size: 10 * 1024 * 1024,
+					Size: 10 * 1024,
 				})
 
 				return err
@@ -98,7 +115,7 @@ var _ = Describe("Single transferring", func() {
 	})
 })
 
-var _ = Describe("Clique", func() {
+var _ = Describe("Logging", func() {
 	var (
 		tPortA, tPortB uint16
 		procA, procB   *runner.ClqProcess
@@ -145,14 +162,8 @@ var _ = Describe("Clique", func() {
 
 		Expect(procACont).To(ContainSubstring("Incoming transfer is completed"))
 		Expect(procACont).To(ContainSubstring("Outgoing transfer is completed"))
-		Expect(procACont).To(ContainSubstring(
-			fmt.Sprintf("127.0.0.1:%d", tPortB),
-		))
 
 		Expect(procBCont).To(ContainSubstring("Incoming transfer is completed"))
 		Expect(procBCont).To(ContainSubstring("Outgoing transfer is completed"))
-		Expect(procBCont).To(ContainSubstring(
-			fmt.Sprintf("127.0.0.1:%d", tPortA),
-		))
 	})
 })
