@@ -1,6 +1,6 @@
 .PHONY: all \
 	help \
-	deps update-deps \
+	deps update-deps fakes \
 	test lint \
 	clean
 
@@ -13,6 +13,7 @@ help:
 	@echo '    all ................................. builds the grootfs cli'
 	@echo '    deps ................................ installs dependencies'
 	@echo '    update-deps ......................... updates dependencies'
+	@echo '    fakes ............................... run go generate'
 	@echo '    test ................................ runs tests'
 	@echo '    lint ................................ lint the Go code'
 	@echo '    clean ............................... clean the built artifact'
@@ -24,6 +25,9 @@ deps:
 
 update-deps:
 	glide update
+
+fakes:
+	go generate `go list ./... | grep -v vendor`
 
 ###### Testing ################################################################
 
