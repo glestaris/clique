@@ -4,13 +4,13 @@
 	test lint \
 	clean
 
-clique-agent:
+all:
 	CGO_ENABLED=0 go build -ldflags "-s -d -w" -o clique-agent ./cmd/clique-agent
 
 ###### Help ###################################################################
 
 help:
-	@echo '    all ................................. builds the grootfs cli'
+	@echo '    all ................................. builds clique-agent'
 	@echo '    deps ................................ installs dependencies'
 	@echo '    update-deps ......................... updates dependencies'
 	@echo '    fakes ............................... run go generate'
