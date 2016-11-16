@@ -56,6 +56,7 @@ func main() {
 		Level:     level,
 		Formatter: new(logrus.TextFormatter),
 	}
+	logger.Debug("Initializing internals...")
 
 	///// CONFIGURATION /////////////////////////////////////////////////////////
 
@@ -147,6 +148,7 @@ func main() {
 
 		logger.Info("Exitting clique-agent...")
 	}()
+	logger.Debug("Initialization is complete!")
 
 	///// START /////////////////////////////////////////////////////////////////
 
@@ -195,6 +197,11 @@ func createTransferTasks(
 	cfg config.Config,
 	dsptchr *dispatcher.Dispatcher,
 ) {
+	logger.Debugf(
+		"Found %d remote hosts for the initial transfers", len(cfg.RemoteHosts),
+	)
+	logger.Debugf("Size of initial transfers = %d bytes", cfg.InitTransferSize)
+
 	for _, remoteHost := range cfg.RemoteHosts {
 		host, portStr, err := net.SplitHostPort(remoteHost)
 		if err != nil {

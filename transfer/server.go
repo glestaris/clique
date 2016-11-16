@@ -45,7 +45,7 @@ func (s *Server) Serve() {
 		}
 
 		go func() {
-			// s.logger.Infof("Handling a transfer from %s", conn.RemoteAddr().String())
+			s.logger.Infof("Handling a transfer from %s", conn.RemoteAddr().String())
 			res, err := s.transferReceiver.ReceiveTransfer(conn)
 			if err != nil {
 				conn.Close()

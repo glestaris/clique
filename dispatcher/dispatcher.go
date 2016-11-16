@@ -46,6 +46,12 @@ type Dispatcher struct {
 }
 
 func (d *Dispatcher) Create(spec api.TransferSpec) {
+	d.Logger.WithFields(logrus.Fields{
+		"ip":   spec.IP,
+		"port": spec.Port,
+		"size": spec.Size,
+	}).Debug("Received new task")
+
 	task := &TransferTask{
 		Server:      d.TransferServer,
 		Transferrer: d.Transferrer,

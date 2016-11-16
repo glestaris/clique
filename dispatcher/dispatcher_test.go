@@ -39,7 +39,7 @@ var _ = Describe("Dispatcher", func() {
 
 			ApiRegistry: fakeApiRegistry,
 
-			Logger: nil,
+			Logger: logger,
 		}
 	})
 

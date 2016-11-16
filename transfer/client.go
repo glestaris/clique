@@ -39,9 +39,9 @@ func (c *Client) Transfer(spec TransferSpec) (TransferResults, error) {
 	if err != nil {
 		return TransferResults{}, err
 	}
-	// c.logger.Infof("Starting transfer to %s", conn.RemoteAddr().String())
 	defer conn.Close()
 
+	c.logger.Infof("Starting transfer to %s", conn.RemoteAddr().String())
 	res, err := c.transferSender.SendTransfer(spec, conn)
 	c.logger.WithFields(logrus.Fields{
 		"duration":   res.Duration,
