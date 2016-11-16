@@ -14,12 +14,12 @@ import (
 
 var _ = Describe("Dispatcher", func() {
 	var (
-		fakeScheduler      *fakes.FakeScheduler
-		fakeTransferServer *fakes.FakeInterruptible
-		fakeTransferrer    *fakes.FakeTransferrer
-		fakeApiRegistry    *fakes.FakeApiRegistry
-		logger             *logrus.Logger
-		dsptchr            *dispatcher.Dispatcher
+		fakeScheduler             *fakes.FakeScheduler
+		fakeTransferInterruptible *fakes.FakeInterruptible
+		fakeTransferClient        *fakes.FakeTransferClient
+		fakeApiRegistry           *fakes.FakeApiRegistry
+		logger                    *logrus.Logger
+		dsptchr                   *dispatcher.Dispatcher
 	)
 
 	BeforeEach(func() {
@@ -34,8 +34,8 @@ var _ = Describe("Dispatcher", func() {
 		dsptchr = &dispatcher.Dispatcher{
 			Scheduler: fakeScheduler,
 
-			TransferServer: fakeTransferServer,
-			Transferrer:    fakeTransferrer,
+			TransferInterruptible: fakeTransferInterruptible,
+			TransferClient:        fakeTransferClient,
 
 			ApiRegistry: fakeApiRegistry,
 
@@ -92,8 +92,10 @@ var _ = Describe("Dispatcher", func() {
 			})
 
 			It("should be wired to the correct server and transferrer", func() {
-				Expect(scheduledTask.Server).To(Equal(fakeTransferServer))
-				Expect(scheduledTask.Transferrer).To(Equal(fakeTransferrer))
+				Expect(scheduledTask.TransferInterruptible).To(
+					Equal(fakeTransferInterruptible),
+				)
+				Expect(scheduledTask.TransferClient).To(Equal(fakeTransferClient))
 			})
 
 			It("should contain the correct tranfer spec", func() {
@@ -109,7 +111,9 @@ var _ = Describe("Dispatcher", func() {
 			})
 
 			It("should use the defined propery", func() {
-				Expect(scheduledTask.DesiredPriority).To(Equal(dispatcher.TransferTaskPriority))
+				Expect(scheduledTask.DesiredPriority).To(
+					Equal(dispatcher.TransferTaskPriority),
+				)
 			})
 		})
 	})

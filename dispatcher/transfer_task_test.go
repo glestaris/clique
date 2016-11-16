@@ -17,18 +17,18 @@ import (
 
 var _ = Describe("TransferTask", func() {
 	var (
-		t               *dispatcher.TransferTask
-		fakeServer      *fakes.FakeInterruptible
-		fakeTransferrer *fakes.FakeTransferrer
-		transferSpec    transfer.TransferSpec
-		fakeRegistry    *fakes.FakeApiRegistry
-		priority        int
-		logger          *logrus.Logger
+		t                         *dispatcher.TransferTask
+		fakeTransferInterruptible *fakes.FakeInterruptible
+		fakeTransferClient        *fakes.FakeTransferClient
+		transferSpec              transfer.TransferSpec
+		fakeRegistry              *fakes.FakeApiRegistry
+		priority                  int
+		logger                    *logrus.Logger
 	)
 
 	BeforeEach(func() {
-		fakeServer = new(fakes.FakeInterruptible)
-		fakeTransferrer = new(fakes.FakeTransferrer)
+		fakeTransferInterruptible = new(fakes.FakeInterruptible)
+		fakeTransferClient = new(fakes.FakeTransferClient)
 		transferSpec = transfer.TransferSpec{
 			IP:   net.ParseIP("92.168.12.19"),
 			Port: 1245,
@@ -43,12 +43,12 @@ var _ = Describe("TransferTask", func() {
 		}
 
 		t = &dispatcher.TransferTask{
-			Server:          fakeServer,
-			Transferrer:     fakeTransferrer,
-			TransferSpec:    transferSpec,
-			Registry:        fakeRegistry,
-			DesiredPriority: priority,
-			Logger:          logger,
+			TransferInterruptible: fakeTransferInterruptible,
+			TransferClient:        fakeTransferClient,
+			TransferSpec:          transferSpec,
+			Registry:              fakeRegistry,
+			DesiredPriority:       priority,
+			Logger:                logger,
 		}
 	})
 
@@ -58,8 +58,8 @@ var _ = Describe("TransferTask", func() {
 
 	It("should run the transfer", func() {
 		t.Run()
-		Expect(fakeTransferrer.TransferCallCount()).To(Equal(1))
-		Expect(fakeTransferrer.TransferArgsForCall(0)).To(Equal(transferSpec))
+		Expect(fakeTransferClient.TransferCallCount()).To(Equal(1))
+		Expect(fakeTransferClient.TransferArgsForCall(0)).To(Equal(transferSpec))
 	})
 
 	It("should pause the server", func() {
@@ -68,12 +68,12 @@ var _ = Describe("TransferTask", func() {
 
 	It("should resume the server", func() {
 		t.Run()
-		Expect(fakeServer.ResumeCallCount()).To(Equal(1))
+		Expect(fakeTransferInterruptible.ResumeCallCount()).To(Equal(1))
 	})
 
 	Context("when the task is failing for a while", func() {
 		BeforeEach(func() {
-			fakeTransferrer.TransferReturns(
+			fakeTransferClient.TransferReturns(
 				transfer.TransferResults{}, errors.New("banana"),
 			)
 		})
@@ -84,7 +84,7 @@ var _ = Describe("TransferTask", func() {
 				Expect(t.State()).To(Equal(scheduler.TaskStateReady))
 			}
 
-			fakeTransferrer.TransferReturns(transfer.TransferResults{}, nil)
+			fakeTransferClient.TransferReturns(transfer.TransferResults{}, nil)
 			t.Run()
 			Expect(t.State()).To(Equal(scheduler.TaskStateDone))
 		})
@@ -95,7 +95,7 @@ var _ = Describe("TransferTask", func() {
 				Expect(t.TransferState()).To(Equal(api.TransferStatePending))
 			}
 
-			fakeTransferrer.TransferReturns(transfer.TransferResults{}, nil)
+			fakeTransferClient.TransferReturns(transfer.TransferResults{}, nil)
 			t.Run()
 			Expect(t.TransferState()).To(Equal(api.TransferStateCompleted))
 		})
@@ -110,7 +110,7 @@ var _ = Describe("TransferTask", func() {
 				Checksum:  uint32(12),
 				BytesSent: uint32(10 * 1024 * 1024),
 			}
-			fakeTransferrer.TransferReturns(transferResults, nil)
+			fakeTransferClient.TransferReturns(transferResults, nil)
 		})
 
 		It("should register the transfer results to the registry", func() {
@@ -133,7 +133,7 @@ var _ = Describe("TransferTask", func() {
 		BeforeEach(func() {
 			transferrerChan = make(chan bool)
 
-			fakeTransferrer.TransferStub = func(
+			fakeTransferClient.TransferStub = func(
 				_ transfer.TransferSpec,
 			) (transfer.TransferResults, error) {
 				transferrerChan <- true

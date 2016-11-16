@@ -20,7 +20,6 @@ import (
 	"github.com/ice-stuff/clique/dispatcher"
 	"github.com/ice-stuff/clique/scheduler"
 	"github.com/ice-stuff/clique/transfer"
-	"github.com/ice-stuff/clique/transfer/simpletransfer"
 )
 
 var (
@@ -68,8 +67,8 @@ func main() {
 	///// TRANSFER //////////////////////////////////////////////////////////////
 
 	// Protocol
-	transferReceiver := simpletransfer.NewReceiver(logger)
-	transferSender := simpletransfer.NewSender(logger)
+	transferReceiver, transferSender := setupTransferProtocol(logger)
+	transferInterruptible := setupTransferInterruptible(logger)
 
 	// Server
 	transferListener, err := net.Listen(
@@ -109,11 +108,11 @@ func main() {
 	///// DISPATCHER ////////////////////////////////////////////////////////////
 
 	dsptchr := &dispatcher.Dispatcher{
-		Scheduler:      sched,
-		TransferServer: transferReceiver,
-		Transferrer:    transferClient,
-		ApiRegistry:    transferRegistry,
-		Logger:         logger,
+		Scheduler:             sched,
+		TransferInterruptible: transferInterruptible,
+		TransferClient:        transferClient,
+		ApiRegistry:           transferRegistry,
+		Logger:                logger,
 	}
 
 	///// API ///////////////////////////////////////////////////////////////////

@@ -11,9 +11,9 @@ import (
 )
 
 type TransferTask struct {
-	Server       Interruptible
-	Transferrer  Transferrer
-	TransferSpec transfer.TransferSpec
+	TransferInterruptible Interruptible
+	TransferClient        TransferClient
+	TransferSpec          transfer.TransferSpec
 
 	Registry ApiRegistry
 
@@ -28,14 +28,14 @@ type TransferTask struct {
 }
 
 func (t *TransferTask) Run() {
-	t.Server.Interrupt()
-	defer t.Server.Resume()
+	t.TransferInterruptible.Interrupt()
+	defer t.TransferInterruptible.Resume()
 
 	t.lock.Lock()
 	t.transferState = api.TransferStateRunning
 	t.lock.Unlock()
 
-	res, err := t.Transferrer.Transfer(t.TransferSpec)
+	res, err := t.TransferClient.Transfer(t.TransferSpec)
 	if err != nil {
 		t.Logger.Errorf("Transfer task will be rescheduled: %s", err.Error())
 
