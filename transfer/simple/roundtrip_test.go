@@ -1,11 +1,11 @@
-package simpletransfer_test
+package simple_test
 
 import (
 	"net"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/ice-stuff/clique/transfer"
-	"github.com/ice-stuff/clique/transfer/simpletransfer"
+	"github.com/ice-stuff/clique/transfer/simple"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -13,8 +13,8 @@ import (
 var _ = Describe("Roundtrip", func() {
 	var (
 		logger       *logrus.Logger
-		receiver     *simpletransfer.Receiver
-		sender       *simpletransfer.Sender
+		receiver     *simple.Receiver
+		sender       *simple.Sender
 		senderConn   net.Conn
 		receiverConn net.Conn
 	)
@@ -26,8 +26,8 @@ var _ = Describe("Roundtrip", func() {
 			Formatter: new(logrus.TextFormatter),
 		}
 
-		receiver = simpletransfer.NewReceiver(logger)
-		sender = simpletransfer.NewSender(logger)
+		receiver = simple.NewReceiver(logger)
+		sender = simple.NewSender(logger)
 
 		senderConn, receiverConn = net.Pipe()
 	})
@@ -197,7 +197,7 @@ var _ = Describe("Roundtrip", func() {
 				}()
 
 				_, err := receiver.ReceiveTransfer(newReceiverConn)
-				Expect(err).To(Equal(simpletransfer.ErrBusy))
+				Expect(err).To(Equal(simple.ErrBusy))
 				Eventually(newSenderDone).Should(BeClosed())
 
 				close(done)
@@ -219,7 +219,7 @@ var _ = Describe("Roundtrip", func() {
 					Size: 10 * 1024,
 				}
 				_, err := sender.SendTransfer(spec, newSenderConn)
-				Expect(err).To(Equal(simpletransfer.ErrBusy))
+				Expect(err).To(Equal(simple.ErrBusy))
 				Eventually(newReceiverDone).Should(BeClosed())
 
 				close(done)
@@ -247,7 +247,7 @@ var _ = Describe("Roundtrip", func() {
 				}()
 
 				_, err := receiver.ReceiveTransfer(receiverConn)
-				Expect(err).To(Equal(simpletransfer.ErrBusy))
+				Expect(err).To(Equal(simple.ErrBusy))
 				Eventually(senderDone).Should(BeClosed())
 
 				close(done)
@@ -269,7 +269,7 @@ var _ = Describe("Roundtrip", func() {
 					Size: 10 * 1024,
 				}
 				_, err := sender.SendTransfer(spec, senderConn)
-				Expect(err).To(Equal(simpletransfer.ErrBusy))
+				Expect(err).To(Equal(simple.ErrBusy))
 				Eventually(receiverDone).Should(BeClosed())
 
 				close(done)

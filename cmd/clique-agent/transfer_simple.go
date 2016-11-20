@@ -1,20 +1,22 @@
+// +build !transferIsIperf
+
 package main
 
 import (
 	"github.com/Sirupsen/logrus"
 	"github.com/ice-stuff/clique/dispatcher"
 	"github.com/ice-stuff/clique/transfer"
-	"github.com/ice-stuff/clique/transfer/simpletransfer"
+	"github.com/ice-stuff/clique/transfer/simple"
 )
 
 func setupTransferInterruptible(
 	logger *logrus.Logger,
 ) dispatcher.Interruptible {
-	return simpletransfer.NewReceiver(logger)
+	return simple.NewReceiver(logger)
 }
 
 func setupTransferProtocol(logger *logrus.Logger) (
 	transfer.TransferReceiver, transfer.TransferSender,
 ) {
-	return simpletransfer.NewReceiver(logger), simpletransfer.NewSender(logger)
+	return simple.NewReceiver(logger), simple.NewSender(logger)
 }

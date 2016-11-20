@@ -1,4 +1,4 @@
-package simpletransfer
+package simple
 
 import (
 	"hash/crc32"

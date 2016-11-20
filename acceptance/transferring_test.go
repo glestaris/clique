@@ -9,7 +9,7 @@ import (
 	"github.com/ice-stuff/clique/acceptance/runner"
 	"github.com/ice-stuff/clique/config"
 	"github.com/ice-stuff/clique/transfer"
-	"github.com/ice-stuff/clique/transfer/simpletransfer"
+	"github.com/ice-stuff/clique/transfer/simple"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -32,7 +32,7 @@ var _ = Describe("Single transferring", func() {
 			Level:     logrus.InfoLevel,
 		}
 		transferConnector := transfer.NewConnector()
-		transferSender := simpletransfer.NewSender(logger)
+		transferSender := simple.NewSender(logger)
 		transferClient = transfer.NewClient(
 			logger, transferConnector, transferSender,
 		)

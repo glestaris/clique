@@ -1,4 +1,4 @@
-package simpletransfer_test
+package simple_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestSimpletransfer(t *testing.T) {
+func TestSimple(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Simple Transfer Protocol Suite")
 }
