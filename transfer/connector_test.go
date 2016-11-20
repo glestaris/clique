@@ -18,7 +18,7 @@ var _ = Describe("Connector", func() {
 
 	BeforeEach(func() {
 		connector = transfer.NewConnector()
-		randomPort = uint16(5000 + rand.Intn(101) + GinkgoParallelNode())
+		randomPort = uint16((1000 * GinkgoParallelNode()) + rand.Intn(101))
 	})
 
 	Context("when no server is listening", func() {

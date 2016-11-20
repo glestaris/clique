@@ -37,7 +37,7 @@ var _ = Describe("Single transferring", func() {
 			logger, transferConnector, transferSender,
 		)
 
-		port = uint16(5000 + rand.Intn(101) + GinkgoParallelNode())
+		port = uint16((1000 * GinkgoParallelNode()) + rand.Intn(101))
 
 		proc, err = startClique(config.Config{
 			TransferPort: port,
@@ -125,8 +125,8 @@ var _ = Describe("Logging", func() {
 	BeforeEach(func() {
 		var err error
 
-		tPortA = uint16(5000 + rand.Intn(101) + GinkgoParallelNode())
-		tPortB = uint16(5100 + rand.Intn(101) + GinkgoParallelNode())
+		tPortA = uint16((1000 * GinkgoParallelNode()) + rand.Intn(101))
+		tPortB = uint16((1500 * GinkgoParallelNode()) + rand.Intn(101))
 		hosts = []string{
 			fmt.Sprintf("127.0.0.1:%d", tPortA),
 			fmt.Sprintf("127.0.0.1:%d", tPortB),

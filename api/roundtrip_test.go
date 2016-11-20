@@ -24,7 +24,7 @@ var _ = Describe("Roundtrip", func() {
 	)
 
 	BeforeEach(func() {
-		port = uint16(6010 + rand.Intn(101) + GinkgoParallelNode())
+		port = uint16((1000 * GinkgoParallelNode()) + rand.Intn(101))
 
 		fakeRegistry = new(fakes.FakeRegistry)
 		fakeTransferCreator = new(fakes.FakeTransferCreator)

@@ -23,8 +23,8 @@ var _ = Describe("Api", func() {
 	BeforeEach(func() {
 		var err error
 
-		tPort = uint16(5000 + rand.Intn(101) + GinkgoParallelNode())
-		aPort = uint16(6000 + rand.Intn(101) + GinkgoParallelNode())
+		tPort = uint16((1000 * GinkgoParallelNode()) + rand.Intn(101))
+		aPort = uint16((1500 * GinkgoParallelNode()) + rand.Intn(101))
 
 		clique, err = startClique(config.Config{
 			TransferPort: tPort,
@@ -57,8 +57,8 @@ var _ = Describe("Api", func() {
 		BeforeEach(func() {
 			var err error
 
-			tPortSecond = uint16(5100 + rand.Intn(101) + GinkgoParallelNode())
-			aPortSecond = uint16(6100 + rand.Intn(101) + GinkgoParallelNode())
+			tPortSecond = uint16((1200 * GinkgoParallelNode()) + rand.Intn(101))
+			aPortSecond = uint16((1700 * GinkgoParallelNode()) + rand.Intn(101))
 
 			cliqueSecond, err = startClique(config.Config{
 				TransferPort: tPortSecond,
