@@ -59,7 +59,7 @@ var _ = Describe("Roundtrip", func() {
 		Describe("Sender.SendTransfer", func() {
 			It("returns an error", func() {
 				spec := transfer.TransferSpec{
-					Size: 10 * 1024,
+					Size: 10 * 1024 * 1024,
 				}
 				_, err := sender.SendTransfer(spec, senderConn)
 				Expect(err).To(MatchError(ContainSubstring("on closed pipe")))
@@ -76,7 +76,7 @@ var _ = Describe("Roundtrip", func() {
 					defer GinkgoRecover()
 
 					spec := transfer.TransferSpec{
-						Size: 10 * 1024,
+						Size: 10 * 1024 * 1024,
 					}
 					_, err := sender.SendTransfer(spec, senderConn)
 					Expect(err).NotTo(HaveOccurred())
@@ -116,7 +116,7 @@ var _ = Describe("Roundtrip", func() {
 		Describe("Sender.SendTransfer", func() {
 			It("should send the requested number of bytes", func() {
 				spec := transfer.TransferSpec{
-					Size: 10 * 1024,
+					Size: 10 * 1024 * 1024,
 				}
 
 				senderRes, err := sender.SendTransfer(spec, senderConn)
@@ -130,7 +130,7 @@ var _ = Describe("Roundtrip", func() {
 
 			It("should have the same checksum with the receiver", func() {
 				spec := transfer.TransferSpec{
-					Size: 10 * 1024,
+					Size: 10 * 1024 * 1024,
 				}
 
 				senderRes, err := sender.SendTransfer(spec, senderConn)
@@ -144,7 +144,7 @@ var _ = Describe("Roundtrip", func() {
 
 			It("should measure a similar duration with the receiver", func() {
 				spec := transfer.TransferSpec{
-					Size: 10 * 1024,
+					Size: 10 * 1024 * 1024,
 				}
 
 				senderRes, err := sender.SendTransfer(spec, senderConn)
@@ -154,8 +154,8 @@ var _ = Describe("Roundtrip", func() {
 				Eventually(receiverDone).Should(BeClosed())
 				Expect(senderRes.Duration).NotTo(BeZero())
 				Expect(senderRes.Duration).To(
-					BeNumerically("~", receiverRes.Duration, 500000),
-				) // +/- 50000ns = 0.5ms
+					BeNumerically("~", receiverRes.Duration, 5000000),
+				) // +/- 5000000ns = 5ms
 			})
 		})
 	})
@@ -171,11 +171,14 @@ var _ = Describe("Roundtrip", func() {
 				Expect(err).NotTo(HaveOccurred())
 				close(receiverDone)
 			}()
+
+			// synchronize to avoid flakes
+			Eventually(receiver.IsBusy).Should(BeTrue())
 		})
 
 		AfterEach(func() {
 			_, err := sender.SendTransfer(transfer.TransferSpec{
-				Size: 10 * 1024,
+				Size: 10 * 1024 * 1024,
 			}, senderConn)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(senderConn.Close()).To(Succeed())
@@ -189,7 +192,7 @@ var _ = Describe("Roundtrip", func() {
 				go func() {
 					defer GinkgoRecover()
 					spec := transfer.TransferSpec{
-						Size: 10 * 1024,
+						Size: 10 * 1024 * 1024,
 					}
 					_, err := sender.SendTransfer(spec, newSenderConn)
 					Expect(err).To(HaveOccurred())
@@ -216,7 +219,7 @@ var _ = Describe("Roundtrip", func() {
 				}()
 
 				spec := transfer.TransferSpec{
-					Size: 10 * 1024,
+					Size: 10 * 1024 * 1024,
 				}
 				_, err := sender.SendTransfer(spec, newSenderConn)
 				Expect(err).To(Equal(simple.ErrBusy))
@@ -239,7 +242,7 @@ var _ = Describe("Roundtrip", func() {
 				go func() {
 					defer GinkgoRecover()
 					spec := transfer.TransferSpec{
-						Size: 10 * 1024,
+						Size: 10 * 1024 * 1024,
 					}
 					_, err := sender.SendTransfer(spec, senderConn)
 					Expect(err).To(HaveOccurred())
@@ -266,7 +269,7 @@ var _ = Describe("Roundtrip", func() {
 				}()
 
 				spec := transfer.TransferSpec{
-					Size: 10 * 1024,
+					Size: 10 * 1024 * 1024,
 				}
 				_, err := sender.SendTransfer(spec, senderConn)
 				Expect(err).To(Equal(simple.ErrBusy))
@@ -292,7 +295,7 @@ var _ = Describe("Roundtrip", func() {
 				}()
 
 				spec := transfer.TransferSpec{
-					Size: 10 * 1024,
+					Size: 10 * 1024 * 1024,
 				}
 				_, err := sender.SendTransfer(spec, senderConn)
 				Expect(err).NotTo(HaveOccurred())

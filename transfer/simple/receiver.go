@@ -73,6 +73,13 @@ func (r *Receiver) Resume() {
 	r.isPaused = false
 }
 
+func (r *Receiver) IsBusy() bool {
+	r.stateMutex.Lock()
+	defer r.stateMutex.Unlock()
+
+	return r.isBusy || r.isPaused
+}
+
 func (r *Receiver) handleBusy(conn io.ReadWriter) error {
 	r.logger.Debugf("Server is busy!")
 	if _, err := conn.Write([]byte("i-am-busy")); err != nil {
