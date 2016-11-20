@@ -37,20 +37,22 @@ func NewClient(
 func (c *Client) Transfer(spec TransferSpec) (TransferResults, error) {
 	conn, err := c.connector.Connect(spec.IP, spec.Port)
 	if err != nil {
+		c.logger.Errorf("Failed to connect to server: '%s'", err)
 		return TransferResults{}, err
 	}
 	defer conn.Close()
 
 	c.logger.Infof("Starting transfer to %s", conn.RemoteAddr().String())
 	res, err := c.transferSender.SendTransfer(spec, conn)
+	if err != nil {
+		c.logger.Errorf("Failed to send transfer: '%s'", err)
+		return TransferResults{}, err
+	}
+
 	c.logger.WithFields(logrus.Fields{
 		"duration":   res.Duration,
 		"checksum":   res.Checksum,
 		"bytes_sent": res.BytesSent,
 	}).Info("Outgoing transfer is completed")
-	if err != nil {
-		return TransferResults{}, err
-	}
-
 	return res, nil
 }

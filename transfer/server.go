@@ -49,7 +49,7 @@ func (s *Server) Serve() {
 			res, err := s.transferReceiver.ReceiveTransfer(conn)
 			if err != nil {
 				conn.Close()
-				s.logger.Debugf("Failed to process connection: '%s'", err)
+				s.logger.Errorf("Failed to receive connection: '%s'", err)
 				return
 			}
 			conn.Close()
