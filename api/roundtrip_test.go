@@ -1,13 +1,13 @@
 package api_test
 
 import (
-	"math/rand"
 	"net"
 	"time"
 
 	"github.com/ice-stuff/clique"
 	"github.com/ice-stuff/clique/api"
 	"github.com/ice-stuff/clique/api/fakes"
+	"github.com/ice-stuff/clique/testhelpers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -24,7 +24,7 @@ var _ = Describe("Roundtrip", func() {
 	)
 
 	BeforeEach(func() {
-		port = uint16((1000 * GinkgoParallelNode()) + rand.Intn(101))
+		port = testhelpers.SelectPort(GinkgoParallelNode())
 
 		fakeRegistry = new(fakes.FakeRegistry)
 		fakeTransferCreator = new(fakes.FakeTransferCreator)

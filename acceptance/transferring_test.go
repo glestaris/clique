@@ -2,12 +2,12 @@ package acceptance_test
 
 import (
 	"fmt"
-	"math/rand"
 	"net"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/ice-stuff/clique/acceptance/runner"
 	"github.com/ice-stuff/clique/config"
+	"github.com/ice-stuff/clique/testhelpers"
 	"github.com/ice-stuff/clique/transfer"
 	"github.com/ice-stuff/clique/transfer/simple"
 
@@ -37,7 +37,7 @@ var _ = Describe("Single transferring", func() {
 			logger, transferConnector, transferSender,
 		)
 
-		port = uint16((1000 * GinkgoParallelNode()) + rand.Intn(101))
+		port = testhelpers.SelectPort(GinkgoParallelNode())
 
 		proc, err = startClique(config.Config{
 			TransferPort: port,
@@ -125,8 +125,8 @@ var _ = Describe("Logging", func() {
 	BeforeEach(func() {
 		var err error
 
-		tPortA = uint16((1000 * GinkgoParallelNode()) + rand.Intn(101))
-		tPortB = uint16((1500 * GinkgoParallelNode()) + rand.Intn(101))
+		tPortA = testhelpers.SelectPort(GinkgoParallelNode())
+		tPortB = testhelpers.SelectPort(GinkgoParallelNode())
 		hosts = []string{
 			fmt.Sprintf("127.0.0.1:%d", tPortA),
 			fmt.Sprintf("127.0.0.1:%d", tPortB),

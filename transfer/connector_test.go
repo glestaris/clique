@@ -2,9 +2,9 @@ package transfer_test
 
 import (
 	"fmt"
-	"math/rand"
 	"net"
 
+	"github.com/ice-stuff/clique/testhelpers"
 	"github.com/ice-stuff/clique/transfer"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -18,7 +18,7 @@ var _ = Describe("Connector", func() {
 
 	BeforeEach(func() {
 		connector = transfer.NewConnector()
-		randomPort = uint16((1000 * GinkgoParallelNode()) + rand.Intn(101))
+		randomPort = testhelpers.SelectPort(GinkgoParallelNode())
 	})
 
 	Context("when no server is listening", func() {

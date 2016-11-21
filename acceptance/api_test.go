@@ -1,13 +1,13 @@
 package acceptance_test
 
 import (
-	"math/rand"
 	"net"
 	"time"
 
 	"github.com/ice-stuff/clique/acceptance/runner"
 	"github.com/ice-stuff/clique/api"
 	"github.com/ice-stuff/clique/config"
+	"github.com/ice-stuff/clique/testhelpers"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -23,8 +23,8 @@ var _ = Describe("Api", func() {
 	BeforeEach(func() {
 		var err error
 
-		tPort = uint16((1000 * GinkgoParallelNode()) + rand.Intn(101))
-		aPort = uint16((1500 * GinkgoParallelNode()) + rand.Intn(101))
+		tPort = testhelpers.SelectPort(GinkgoParallelNode())
+		aPort = testhelpers.SelectPort(GinkgoParallelNode())
 
 		clique, err = startClique(config.Config{
 			TransferPort: tPort,
@@ -57,8 +57,8 @@ var _ = Describe("Api", func() {
 		BeforeEach(func() {
 			var err error
 
-			tPortSecond = uint16((1200 * GinkgoParallelNode()) + rand.Intn(101))
-			aPortSecond = uint16((1700 * GinkgoParallelNode()) + rand.Intn(101))
+			tPortSecond = testhelpers.SelectPort(GinkgoParallelNode())
+			aPortSecond = testhelpers.SelectPort(GinkgoParallelNode())
 
 			cliqueSecond, err = startClique(config.Config{
 				TransferPort: tPortSecond,
