@@ -28,7 +28,7 @@ func NewClqProcess(
 }
 
 func (c *ClqProcess) Stop() error {
-	if err := c.Cmd.Process.Kill(); err != nil {
+	if err := c.Cmd.Process.Signal(os.Interrupt); err != nil {
 		return err
 	}
 
