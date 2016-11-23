@@ -52,7 +52,7 @@ func startClique(cfg config.Config, args ...string) (*runner.ClqProcess, error) 
 	}
 	configFile.Close()
 
-	finalArgs := []string{"-config", configFilePath}
+	finalArgs := []string{"-config", configFilePath, "-debug"}
 	finalArgs = append(finalArgs, args...)
 	cmd := exec.Command(cliqueAgentBin, finalArgs...)
 
