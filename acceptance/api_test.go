@@ -15,95 +15,65 @@ import (
 
 var _ = Describe("Api", func() {
 	var (
-		tPort, aPort uint16
-		clique       *runner.ClqProcess
-		client       *api.Client
+		srcTPort, srcAPort uint16
+		srcClique          *runner.ClqProcess
+		srcClient          *api.Client
 	)
 
 	BeforeEach(func() {
 		var err error
 
-		tPort = testhelpers.SelectPort(GinkgoParallelNode())
-		aPort = testhelpers.SelectPort(GinkgoParallelNode())
-
-		clique, err = startClique(config.Config{
-			TransferPort: tPort,
-			APIPort:      aPort,
+		srcTPort = testhelpers.SelectPort(GinkgoParallelNode())
+		srcAPort = testhelpers.SelectPort(GinkgoParallelNode())
+		srcClique, err = startClique(config.Config{
+			TransferPort: srcTPort,
+			APIPort:      srcAPort,
 		})
 		Expect(err).NotTo(HaveOccurred())
 
-		client = api.NewClient(
-			"127.0.0.1", aPort, time.Millisecond*100,
+		srcClient = api.NewClient(
+			"127.0.0.1", srcAPort, time.Millisecond*100,
 		)
 	})
 
 	AfterEach(func() {
-		Expect(clique.Stop()).To(Succeed())
+		Expect(srcClique.Stop()).To(Succeed())
 	})
 
 	Describe("Ping", func() {
 		It("should succeed", func() {
-			Expect(client.Ping()).To(Succeed())
+			Expect(srcClient.Ping()).To(Succeed())
 		})
 	})
 
 	Context("when there is a second clique-agent running", func() {
 		var (
-			tPortSecond, aPortSecond uint16
-			cliqueSecond             *runner.ClqProcess
-			clientSecond             *api.Client
+			destTPort  uint16
+			destClique *runner.ClqProcess
 		)
 
 		BeforeEach(func() {
 			var err error
-
-			tPortSecond = testhelpers.SelectPort(GinkgoParallelNode())
-			aPortSecond = testhelpers.SelectPort(GinkgoParallelNode())
-
-			cliqueSecond, err = startClique(config.Config{
-				TransferPort: tPortSecond,
-				APIPort:      aPortSecond,
+			destTPort = testhelpers.SelectPort(GinkgoParallelNode())
+			destClique, err = startClique(config.Config{
+				TransferPort: destTPort,
 			})
 			Expect(err).NotTo(HaveOccurred())
-
-			clientSecond = api.NewClient(
-				"127.0.0.1", aPortSecond, time.Millisecond*100,
-			)
 		})
 
 		AfterEach(func() {
-			Expect(cliqueSecond.Stop()).To(Succeed())
+			Expect(destClique.Stop()).To(Succeed())
 		})
 
-		It("should transfer to the second clique-agent", func() {
-			Expect(client.CreateTransfer(api.TransferSpec{
+		It("should return list of pending transfers in the transfer source", func() {
+			Expect(srcClient.CreateTransfer(api.TransferSpec{
 				IP:   net.ParseIP("127.0.0.1"),
-				Port: tPortSecond,
-				Size: 10 * 1024 * 1024,
-			})).To(Succeed())
-
-			var resList []api.TransferResults
-			Eventually(func() []api.TransferResults {
-				var err error
-				resList, err = client.TransferResultsByIP(net.ParseIP("127.0.0.1"))
-				Expect(err).NotTo(HaveOccurred())
-				return resList
-			}, 5.0).Should(HaveLen(1))
-
-			res := resList[0]
-			Expect(res.IP).To(Equal(net.ParseIP("127.0.0.1")))
-			Expect(res.BytesSent).To(BeNumerically("==", 10*1024*1024))
-		})
-
-		It("should return list of pending transfers", func() {
-			Expect(client.CreateTransfer(api.TransferSpec{
-				IP:   net.ParseIP("127.0.0.1"),
-				Port: tPortSecond,
+				Port: destTPort,
 				Size: 10 * 1024 * 1024,
 			})).To(Succeed())
 
 			transferState := func() []api.Transfer {
-				transfers, err := client.TransfersByState(api.TransferStateRunning)
+				transfers, err := srcClient.TransfersByState(api.TransferStateRunning)
 				Expect(err).NotTo(HaveOccurred())
 				return transfers
 			}

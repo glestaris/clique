@@ -1,169 +1,95 @@
 package acceptance_test
 
 import (
-	"fmt"
 	"net"
+	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/ice-stuff/clique/acceptance/runner"
+	"github.com/ice-stuff/clique/api"
 	"github.com/ice-stuff/clique/config"
 	"github.com/ice-stuff/clique/testhelpers"
-	"github.com/ice-stuff/clique/transfer"
-	"github.com/ice-stuff/clique/transfer/simple"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gbytes"
 )
 
-var _ = Describe("Single transferring", func() {
+var _ = Describe("Transferring", func() {
 	var (
-		transferClient *transfer.Client
-		proc           *runner.ClqProcess
-		port           uint16
+		srcTPort, srcAPort, destTPort uint16
+		srcClique, destClique         *runner.ClqProcess
+		srcClient                     *api.Client
 	)
 
 	BeforeEach(func() {
 		var err error
 
-		logger := &logrus.Logger{
-			Out:       GinkgoWriter,
-			Formatter: new(logrus.TextFormatter),
-			Level:     logrus.InfoLevel,
-		}
-		transferConnector := transfer.NewConnector()
-		transferSender := simple.NewSender(logger)
-		transferClient = transfer.NewClient(
-			logger, transferConnector, transferSender,
+		srcTPort = testhelpers.SelectPort(GinkgoParallelNode())
+		srcAPort = testhelpers.SelectPort(GinkgoParallelNode())
+		srcClique, err = startClique(config.Config{
+			TransferPort: srcTPort,
+			APIPort:      srcAPort,
+		})
+		Expect(err).NotTo(HaveOccurred())
+
+		srcClient = api.NewClient(
+			"127.0.0.1", srcAPort, time.Millisecond*100,
 		)
 
-		port = testhelpers.SelectPort(GinkgoParallelNode())
-
-		proc, err = startClique(config.Config{
-			TransferPort: port,
-			RemoteHosts:  []string{},
+		destTPort = testhelpers.SelectPort(GinkgoParallelNode())
+		destClique, err = startClique(config.Config{
+			TransferPort: destTPort,
 		})
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	AfterEach(func() {
-		Expect(proc.Stop()).To(Succeed())
+		Expect(srcClique.Stop()).To(Succeed())
+		Expect(destClique.Stop()).To(Succeed())
 	})
 
-	It("should accept transfers", func() {
-		res, err := transferClient.Transfer(transfer.TransferSpec{
+	It("should transfer the requested amount of bytes", func() {
+		spec := api.TransferSpec{
 			IP:   net.ParseIP("127.0.0.1"),
-			Port: port,
+			Port: destTPort,
 			Size: 10 * 1024 * 1024,
-		})
-		Expect(err).NotTo(HaveOccurred())
+		}
+		Expect(srcClient.CreateTransfer(spec)).To(Succeed())
 
-		Expect(res.BytesSent).To(BeNumerically("==", 10*1024*1024))
+		var resList []api.TransferResults
+		Eventually(func() []api.TransferResults {
+			var err error
+			resList, err = srcClient.TransferResultsByIP(net.ParseIP("127.0.0.1"))
+			Expect(err).NotTo(HaveOccurred())
+			return resList
+		}, 5.0).Should(HaveLen(1))
+
+		res := resList[0]
+		Expect(res.IP).To(Equal(net.ParseIP("127.0.0.1")))
+		// Iperf reported amount of bytes sent/received can differ than
+		// requested. A 20% error is used here to verify that despite being
+		// different, these numbers are not completely wrong.
+		margin := float32(spec.Size) * 0.20
+		Expect(res.BytesSent).To(BeNumerically("~", spec.Size, margin))
 	})
 
 	It("should populate the duration", func() {
-		res, err := transferClient.Transfer(transfer.TransferSpec{
+		spec := api.TransferSpec{
 			IP:   net.ParseIP("127.0.0.1"),
-			Port: port,
+			Port: destTPort,
 			Size: 10 * 1024 * 1024,
-		})
-		Expect(err).NotTo(HaveOccurred())
-
-		Expect(res.Duration).NotTo(BeZero())
-	})
-
-	Context("when trying to run two transfers to the same server", func() {
-		var transferStateCh chan string
-
-		BeforeEach(func() {
-			transferStateCh = make(chan string)
-
-			go func(c chan string) {
-				defer GinkgoRecover()
-
-				c <- "started"
-
-				Eventually(func() error {
-					_, err := transferClient.Transfer(transfer.TransferSpec{
-						IP:   net.ParseIP("127.0.0.1"),
-						Port: port,
-						Size: 10 * 1024 * 1024,
-					})
-
-					return err
-				}).Should(Succeed())
-
-				close(c)
-			}(transferStateCh)
-		})
-
-		It("should reject the second one", func() {
-			Eventually(transferStateCh).Should(Receive())
-
-			Eventually(func() error {
-				_, err := transferClient.Transfer(transfer.TransferSpec{
-					IP:   net.ParseIP("127.0.0.1"),
-					Port: port,
-					Size: 10 * 1024,
-				})
-
-				return err
-			}).Should(HaveOccurred())
-
-			Eventually(transferStateCh, "15s").Should(BeClosed())
-		})
-	})
-})
-
-var _ = Describe("Logging", func() {
-	var (
-		tPortA, tPortB uint16
-		procA, procB   *runner.ClqProcess
-		hosts          []string
-	)
-
-	BeforeEach(func() {
-		var err error
-
-		tPortA = testhelpers.SelectPort(GinkgoParallelNode())
-		tPortB = testhelpers.SelectPort(GinkgoParallelNode())
-		hosts = []string{
-			fmt.Sprintf("127.0.0.1:%d", tPortA),
-			fmt.Sprintf("127.0.0.1:%d", tPortB),
 		}
+		Expect(srcClient.CreateTransfer(spec)).To(Succeed())
 
-		procA, err = startClique(config.Config{
-			TransferPort:     tPortA,
-			RemoteHosts:      []string{hosts[1]},
-			InitTransferSize: 1 * 1024 * 1024,
-		}, "-debug")
-		Expect(err).NotTo(HaveOccurred())
+		var resList []api.TransferResults
+		Eventually(func() []api.TransferResults {
+			var err error
+			resList, err = srcClient.TransferResultsByIP(net.ParseIP("127.0.0.1"))
+			Expect(err).NotTo(HaveOccurred())
+			return resList
+		}, 5.0).Should(HaveLen(1))
 
-		procB, err = startClique(config.Config{
-			TransferPort:     tPortB,
-			RemoteHosts:      []string{hosts[0]},
-			InitTransferSize: 1 * 1024 * 1024,
-		}, "-debug")
-		Expect(err).NotTo(HaveOccurred())
-	})
-
-	It("should print the clique result", func() {
-		// wait to finish
-		Eventually(procA.Buffer, 2.0).Should(gbytes.Say("new_state=done"))
-		Eventually(procB.Buffer, 2.0).Should(gbytes.Say("new_state=done"))
-
-		// exit to make sure all logs get pushed
-		Expect(procA.Stop()).To(Succeed())
-		Expect(procB.Stop()).To(Succeed())
-
-		// grab contents
-		procACont := string(procA.Buffer.Contents())
-		procBCont := string(procB.Buffer.Contents())
-
-		Expect(procACont).To(ContainSubstring("Incoming transfer is completed"))
-		Expect(procACont).To(ContainSubstring("Outgoing transfer is completed"))
-
-		Expect(procBCont).To(ContainSubstring("Incoming transfer is completed"))
-		Expect(procBCont).To(ContainSubstring("Outgoing transfer is completed"))
+		res := resList[0]
+		Expect(res.IP).To(Equal(net.ParseIP("127.0.0.1")))
+		Expect(res.Duration).NotTo(BeZero())
 	})
 })
