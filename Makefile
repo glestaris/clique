@@ -31,8 +31,8 @@ fakes:
 
 ###### Testing ################################################################
 
-test:
-	ginkgo -randomizeAllSpecs -p acceptance
+test: clique-agent
+	CLIQUE_AGENT_PATH=${PWD}/clique-agent ginkgo -randomizeAllSpecs -p acceptance
 	ginkgo -randomizeAllSpecs -randomizeSuites -r -p -race -skipPackage acceptance,ctl,vendor
 	ginkgo -randomizeAllSpecs ctl
 
