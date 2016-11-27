@@ -80,6 +80,17 @@ var _ = Describe("Config", func() {
 
 					Expect(cfg.InitTransferSize).To(BeEquivalentTo(20 * 1024 * 1024))
 				})
+
+				It("should apply the default IperfPort", func() {
+					getConfigFile(cfgPath, config.Config{
+						TransferPort: 5000,
+					})
+
+					cfg, err := config.NewConfig(cfgPath)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(cfg.IperfPort).To(BeNumerically("==", 12222))
+				})
 			})
 		})
 	})

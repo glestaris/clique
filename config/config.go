@@ -12,6 +12,9 @@ type Config struct {
 	APIPort          uint16   `json:"api_port"`
 	RemoteHosts      []string `json:"remote_hosts"`
 	InitTransferSize uint32   `json:"init_transfer_size"`
+	// Iperf settings
+	UseIperf  bool   `json:"use_iperf"`
+	IperfPort uint16 `json:"iperf_port"`
 }
 
 func NewConfig(configPath string) (Config, error) {
@@ -45,6 +48,9 @@ func validateConfig(cfg Config) error {
 func applyDefaults(cfg Config) Config {
 	if cfg.InitTransferSize == 0 {
 		cfg.InitTransferSize = 20 * 1024 * 1024
+	}
+	if cfg.IperfPort == 0 {
+		cfg.IperfPort = 12222
 	}
 
 	return cfg

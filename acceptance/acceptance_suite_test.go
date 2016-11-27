@@ -16,14 +16,20 @@ import (
 
 	"github.com/ice-stuff/clique/acceptance/runner"
 	"github.com/ice-stuff/clique/config"
+	"github.com/ice-stuff/clique/testhelpers"
 )
 
-var cliqueAgentBin string
+var (
+	cliqueAgentBin string
+	useIperf       bool
+)
 
 func TestAcceptance(t *testing.T) {
 	RegisterFailHandler(Fail)
 
 	BeforeEach(func() {
+		useIperf = (os.Getenv("TEST_WITH_IPERF") == "1")
+
 		if os.Getenv("CLIQUE_AGENT_PATH") != "" {
 			cliqueAgentBin = os.Getenv("CLIQUE_AGENT_PATH")
 		} else {
@@ -38,6 +44,11 @@ func TestAcceptance(t *testing.T) {
 }
 
 func startClique(cfg config.Config, args ...string) (*runner.ClqProcess, error) {
+	if useIperf && !cfg.UseIperf {
+		cfg.UseIperf = true
+		cfg.IperfPort = testhelpers.SelectPort(GinkgoParallelNode())
+	}
+
 	configFile, err := ioutil.TempFile("", "clique-agent-config")
 	if err != nil {
 		return nil, err

@@ -10,6 +10,8 @@ script:
   - make all
   - make lint
   - make test
+  - make iperf
+  - make test-iperf
 deploy:
   provider: releases
   file: ./build/clique-agent

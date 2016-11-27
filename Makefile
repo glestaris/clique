@@ -1,30 +1,44 @@
-.PHONY: all \
+.PHONY: all iperf \
 	help \
 	deps update-deps fakes \
-	test lint \
-	clean
+	test test-iperf lint \
+	clean clean-iperf
 
 all:
 	CGO_ENABLED=0 go build -ldflags "-s -d -w" -o clique-agent ./cmd/clique-agent
+
+iperf: iperf/vendor/src/.lib
+	go build -o clique-agent -tags "withIperf" ./cmd/clique-agent
 
 ###### Help ###################################################################
 
 help:
 	@echo '    all ................................. builds clique-agent'
+	@echo '    iperf ............................... builds clique-agent with Iperf'
 	@echo '    deps ................................ installs dependencies'
 	@echo '    update-deps ......................... updates dependencies'
 	@echo '    fakes ............................... run go generate'
 	@echo '    test ................................ runs tests'
+	@echo '    test-iperf .......................... runs iperf transfer tests'
 	@echo '    lint ................................ lint the Go code'
 	@echo '    clean ............................... clean the built artifact'
+	@echo '    clean-iperf ......................... clean the built artifacts for Iperf'
 
 ###### Dependencies ###########################################################
 
+iperf/vendor/Makefile:
+	cd iperf/vendor; ./configure
+
+iperf/vendor/src/.lib: iperf/vendor/Makefile
+	cd iperf/vendor; make
+
 deps:
 	glide install
+	git submodule update --init --recursive
 
 update-deps:
 	glide update
+	cd iperf/vendor; git checkout master; git pull
 
 fakes:
 	go generate `go list ./... | grep -v vendor`
@@ -33,8 +47,18 @@ fakes:
 
 test: all
 	CLIQUE_AGENT_PATH=${PWD}/clique-agent ginkgo -randomizeAllSpecs -p acceptance
-	ginkgo -randomizeAllSpecs -randomizeSuites -r -p -race -skipPackage acceptance,ctl,vendor
+	ginkgo -randomizeAllSpecs -r -p -race -skipPackage acceptance,ctl,vendor,iperf
 	ginkgo -randomizeAllSpecs ctl
+
+test-iperf: iperf
+	LD_LIBRARY_PATH=${PWD}/iperf/vendor/src/.libs \
+	DYLD_LIBRARY_PATH=${PWD}/iperf/vendor/src/.libs \
+		ginkgo -randomizeSuites -p -race iperf
+	LD_LIBRARY_PATH=${PWD}/iperf/vendor/src/.libs \
+	DYLD_LIBRARY_PATH=${PWD}/iperf/vendor/src/.libs \
+	TEST_WITH_IPERF=1 \
+	CLIQUE_AGENT_PATH=${PWD}/clique-agent \
+		ginkgo -randomizeAllSpecs -p acceptance
 
 ###### Code quality ###########################################################
 
@@ -45,3 +69,6 @@ lint:
 
 clean:
 	rm -Rf ./clique-agent
+
+clean-iperf:
+	cd vendor/iperf; make clean

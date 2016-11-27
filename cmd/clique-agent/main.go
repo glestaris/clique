@@ -67,8 +67,10 @@ func main() {
 	///// TRANSFER //////////////////////////////////////////////////////////////
 
 	// Protocol
-	transferReceiver, transferSender := setupTransferProtocol(logger)
-	transferInterruptible := setupTransferInterruptible(logger)
+	t, err := setupTransferrer(logger, cfg)
+	if err != nil {
+		logger.Fatal(err.Error())
+	}
 
 	// Server
 	transferListener, err := net.Listen(
@@ -78,13 +80,13 @@ func main() {
 		logger.Fatalf("Setting up transfer server: %s", err.Error())
 	}
 	transferServer := transfer.NewServer(
-		logger, transferListener, transferReceiver,
+		logger, transferListener, t.transferReceiver,
 	)
 
 	// Client
 	transferConnector := transfer.NewConnector()
 	transferClient := transfer.NewClient(
-		logger, transferConnector, transferSender,
+		logger, transferConnector, t.transferSender,
 	)
 
 	///// SCHEDULING ////////////////////////////////////////////////////////////
@@ -109,7 +111,7 @@ func main() {
 
 	dsptchr := &dispatcher.Dispatcher{
 		Scheduler:             sched,
-		TransferInterruptible: transferInterruptible,
+		TransferInterruptible: t.interruptible,
 		TransferClient:        transferClient,
 		ApiRegistry:           transferRegistry,
 		Logger:                logger,

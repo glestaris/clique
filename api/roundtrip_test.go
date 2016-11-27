@@ -46,25 +46,18 @@ var _ = Describe("Roundtrip", func() {
 	})
 
 	Context("when the server is started", func() {
-		var (
-			serverChan chan bool
-		)
+		var serverChan chan struct{}
 
 		BeforeEach(func() {
-			serverChan = make(chan bool)
+			serverChan = make(chan struct{})
 			go func() {
 				defer GinkgoRecover()
-
-				serverChan <- true
-
 				// it's going to fail...
 				server.Serve()
 				close(serverChan)
 			}()
 
-			Eventually(serverChan).Should(Receive())
-			time.Sleep(time.Millisecond) // hack
-			Expect(client.Ping()).To(Succeed())
+			Eventually(client.Ping).Should(Succeed())
 		})
 
 		Context("and closed immediately", func() {
@@ -87,6 +80,11 @@ var _ = Describe("Roundtrip", func() {
 		})
 
 		Context("and another server tries to use the same port", func() {
+			AfterEach(func() {
+				Expect(server.Close()).To(Succeed())
+				Eventually(serverChan).Should(BeClosed())
+			})
+
 			It("should return an error", func() {
 				server := api.NewServer(port, nil, nil)
 				Expect(server.Serve()).NotTo(Succeed())
