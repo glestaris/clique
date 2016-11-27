@@ -92,7 +92,7 @@ var _ = Describe("Roundtrip", func() {
 				Eventually(senderDone).Should(BeClosed())
 
 				close(done)
-			}, 1.0)
+			}, 5.0)
 		})
 	})
 
@@ -204,7 +204,7 @@ var _ = Describe("Roundtrip", func() {
 				Eventually(newSenderDone).Should(BeClosed())
 
 				close(done)
-			}, 1.0)
+			}, 5.0)
 		})
 
 		Describe("the second call to Sender.SendTransfer", func() {
@@ -226,7 +226,7 @@ var _ = Describe("Roundtrip", func() {
 				Eventually(newReceiverDone).Should(BeClosed())
 
 				close(done)
-			}, 1.0)
+			}, 5.0)
 		})
 	})
 
@@ -254,7 +254,7 @@ var _ = Describe("Roundtrip", func() {
 				Eventually(senderDone).Should(BeClosed())
 
 				close(done)
-			}, 1.0)
+			}, 5.0)
 		})
 
 		Describe("Sender.SendTransfer", func() {
@@ -276,7 +276,7 @@ var _ = Describe("Roundtrip", func() {
 				Eventually(receiverDone).Should(BeClosed())
 
 				close(done)
-			}, 1.0)
+			}, 5.0)
 		})
 
 		Context("and then resumed", func() {
@@ -303,7 +303,7 @@ var _ = Describe("Roundtrip", func() {
 				Eventually(receiverDone).Should(BeClosed())
 
 				close(done)
-			}, 1.0)
+			}, 5.0)
 		})
 	})
 })
