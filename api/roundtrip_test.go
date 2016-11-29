@@ -175,6 +175,7 @@ var _ = Describe("Roundtrip", func() {
 							BytesSent: 1024,
 							Checksum:  124566,
 							Duration:  time.Second * 12,
+							RTT:       time.Millisecond * 12,
 							Time:      t,
 						},
 						api.TransferResults{
@@ -182,6 +183,7 @@ var _ = Describe("Roundtrip", func() {
 							BytesSent: 15 * 1024,
 							Checksum:  566124,
 							Duration:  time.Second * 29,
+							RTT:       time.Millisecond * 17,
 							Time:      t,
 						},
 					}
@@ -217,6 +219,7 @@ var _ = Describe("Roundtrip", func() {
 							BytesSent: 1024,
 							Checksum:  124566,
 							Duration:  time.Second * 12,
+							RTT:       time.Millisecond * 19,
 							Time:      t,
 						},
 					}

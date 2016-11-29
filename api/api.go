@@ -10,6 +10,7 @@ type TransferResults struct {
 	BytesSent uint32        `json:"bytes_sent"`
 	Checksum  uint32        `json:"checksum"`
 	Duration  time.Duration `json:"duration"`
+	RTT       time.Duration `json:"rtt"`
 	Time      time.Time     `json:"time"`
 }
 

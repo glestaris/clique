@@ -238,6 +238,7 @@ func makeTranaferResults(ip net.IP, bytesSent uint32) api.TransferResults {
 		BytesSent: bytesSent,
 		Checksum:  uint32(rand.Int31()),
 		Duration:  time.Duration(rand.Int63n(1000)) * time.Millisecond,
+		RTT:       time.Duration(rand.Int63n(100)) * time.Millisecond,
 		Time:      time.Now(),
 	}
 }

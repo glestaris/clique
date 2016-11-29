@@ -53,6 +53,7 @@ func (t *TransferTask) Run() {
 			BytesSent: res.BytesSent,
 			Checksum:  res.Checksum,
 			Duration:  res.Duration,
+			RTT:       res.RTT,
 			Time:      time.Now(),
 		},
 	)

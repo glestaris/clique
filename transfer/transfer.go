@@ -15,6 +15,7 @@ type TransferResults struct {
 	Duration  time.Duration
 	Checksum  uint32
 	BytesSent uint32
+	RTT       time.Duration
 }
 
 // Only for testing

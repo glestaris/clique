@@ -107,6 +107,7 @@ var _ = Describe("TransferTask", func() {
 		BeforeEach(func() {
 			transferResults = transfer.TransferResults{
 				Duration:  time.Millisecond * 100,
+				RTT:       time.Millisecond * 20,
 				Checksum:  uint32(12),
 				BytesSent: uint32(10 * 1024 * 1024),
 			}
@@ -123,6 +124,7 @@ var _ = Describe("TransferTask", func() {
 			Expect(res.BytesSent).To(Equal(transferResults.BytesSent))
 			Expect(res.Checksum).To(Equal(transferResults.Checksum))
 			Expect(res.Duration).To(Equal(transferResults.Duration))
+			Expect(res.RTT).To(Equal(transferResults.RTT))
 			Expect(res.Time).To(BeTemporally("~", time.Now(), time.Second))
 		})
 	})

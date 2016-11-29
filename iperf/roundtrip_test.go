@@ -142,6 +142,22 @@ var _ = Describe("Roundtrip", func() {
 				)
 			})
 
+			It("should populate the RTT", func() {
+				spec := transfer.TransferSpec{
+					IP:   net.ParseIP("127.0.0.1"),
+					Size: 100 * 1024 * 1024,
+				}
+
+				senderRes, err := sender.SendTransfer(spec, senderConn)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(senderConn.Close()).To(Succeed())
+
+				Eventually(receiverDone).Should(BeClosed())
+
+				Expect(senderRes.RTT).NotTo(BeZero())
+				Expect(senderRes.RTT).To(BeNumerically("<", senderRes.Duration))
+			})
+
 			It("should measure a similar duration with the receiver", func() {
 				spec := transfer.TransferSpec{
 					IP:   net.ParseIP("127.0.0.1"),
