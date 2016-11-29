@@ -53,12 +53,12 @@ test: all
 test-iperf: iperf
 	LD_LIBRARY_PATH=${PWD}/iperf/vendor/src/.libs \
 	DYLD_LIBRARY_PATH=${PWD}/iperf/vendor/src/.libs \
-		ginkgo -randomizeSuites -p -race iperf
-	LD_LIBRARY_PATH=${PWD}/iperf/vendor/src/.libs \
-	DYLD_LIBRARY_PATH=${PWD}/iperf/vendor/src/.libs \
 	TEST_WITH_IPERF=1 \
 	CLIQUE_AGENT_PATH=${PWD}/clique-agent \
 		ginkgo -randomizeAllSpecs -p acceptance
+	LD_LIBRARY_PATH=${PWD}/iperf/vendor/src/.libs \
+	DYLD_LIBRARY_PATH=${PWD}/iperf/vendor/src/.libs \
+		ginkgo -randomizeSuites -p -race iperf
 
 ###### Code quality ###########################################################
 
