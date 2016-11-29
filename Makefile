@@ -2,6 +2,7 @@
 	help \
 	deps update-deps fakes \
 	test test-iperf lint \
+	release \
 	clean clean-iperf
 
 all:
@@ -21,6 +22,7 @@ help:
 	@echo '    test ................................ runs tests'
 	@echo '    test-iperf .......................... runs iperf transfer tests'
 	@echo '    lint ................................ lint the Go code'
+	@echo '    release ............................. make Github release'
 	@echo '    clean ............................... clean the built artifact'
 	@echo '    clean-iperf ......................... clean the built artifacts for Iperf'
 
@@ -64,6 +66,16 @@ test-iperf: iperf
 
 lint:
 	go vet `go list ./... | grep -v vendor`
+
+###### Github release #########################################################
+
+release: iperf/vendor/src/.lib
+	mkdir release
+	make
+	mv ./clique-agent ./release/clique-agent-simple
+	make iperf
+	mv ./clique-agent ./release/clique-agent-iperf
+	cp ./iperf/vendor/src/.libs/libiperf.so.0 ./release
 
 ###### Cleanup ################################################################
 

@@ -4,3 +4,4 @@
 # Artifacts
 *.test
 /clique-agent
+/release
