@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.3.0 (29 November 2016)
+
+* Use Iperf to do the transfers.
+* Add RTT field in transfer results.
+
 ## v0.2.0 (06 August 2016)
 
 * Rename the `GET /transfers` and `GET /transfers/:IP` to
