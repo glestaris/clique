@@ -12,9 +12,15 @@ script:
   - make test
   - make iperf
   - make test-iperf
+before_deploy: "make release"
 deploy:
   provider: releases
-  file: ./build/clique-agent
+  file:
+    - ./release/clique-agent-simple
+    - ./release/clique-agent-iperf
+    - ./release/libiperf.so.0.0.0
+    - ./release/libiperf.so.0
+    - ./release/libiperf.so
   skip_cleanup: true
   api_key: $GITHUB_TOKEN
   on:
