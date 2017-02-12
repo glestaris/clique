@@ -11,19 +11,29 @@ import (
 )
 
 type Receiver struct {
-	logger              *logrus.Logger
-	iperfPort           uint16
-	stateMutex          sync.Mutex
-	isBusy              bool
-	isPaused            bool
-	transferFinishMutex sync.Mutex
-	transferFinish      sync.Cond
+	logger    *logrus.Logger
+	iperfPort uint16
+
+	isBusy   bool
+	isPaused bool
+
+	stateMutex          *sync.Mutex
+	transferFinishMutex *sync.Mutex
+	transferFinish      *sync.Cond
 }
 
 func NewReceiver(logger *logrus.Logger, iperfPort uint16) *Receiver {
+	transferFinishMutex := new(sync.Mutex)
 	return &Receiver{
 		logger:    logger,
 		iperfPort: iperfPort,
+
+		isBusy:   false,
+		isPaused: false,
+
+		stateMutex:          new(sync.Mutex),
+		transferFinishMutex: transferFinishMutex,
+		transferFinish:      sync.NewCond(transferFinishMutex),
 	}
 }
 

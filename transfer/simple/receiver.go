@@ -13,16 +13,25 @@ import (
 type Receiver struct {
 	logger *logrus.Logger
 
-	stateMutex          sync.Mutex
-	isBusy              bool
-	isPaused            bool
-	transferFinishMutex sync.Mutex
-	transferFinish      sync.Cond
+	isBusy   bool
+	isPaused bool
+
+	stateMutex          *sync.Mutex
+	transferFinishMutex *sync.Mutex
+	transferFinish      *sync.Cond
 }
 
 func NewReceiver(logger *logrus.Logger) *Receiver {
+	transferFinishMutex := new(sync.Mutex)
 	return &Receiver{
 		logger: logger,
+
+		isBusy:   false,
+		isPaused: false,
+
+		stateMutex:          new(sync.Mutex),
+		transferFinishMutex: transferFinishMutex,
+		transferFinish:      sync.NewCond(transferFinishMutex),
 	}
 }
 
