@@ -18,9 +18,7 @@ deploy:
   file:
     - ./release/clique-agent-simple
     - ./release/clique-agent-iperf
-    - ./release/libiperf.so.0.0.0
     - ./release/libiperf.so.0
-    - ./release/libiperf.so
   skip_cleanup: true
   api_key: $GITHUB_TOKEN
   on:
