@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.1 (12 February 2017)
+
+* Fixes nasty bug with handling of outgoing transfers while serving incoming.
+
 ## v0.3.0 (29 November 2016)
 
 * Use Iperf to do the transfers.
