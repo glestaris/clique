@@ -10,10 +10,11 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"syscall"
 
-	"github.com/ice-stuff/clique/config"
 	"github.com/glestaris/devoops"
 	. "github.com/glestaris/devoops/matchers"
+	"github.com/ice-stuff/clique/config"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -131,6 +132,17 @@ var _ = Describe("Control script", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(proc).To(HaveArgs("-config=./config.json"))
+				})
+
+				It("should pass the LD_LIBRARY_PATH environment variable", func() {
+					proc, err := devoops.FindByPid(pid)
+					Expect(err).NotTo(HaveOccurred())
+
+					ldLibraryPath, _ := syscall.Getenv("LD_LIBRARY_PATH")
+					ldLibraryPath = fmt.Sprintf("%s:%s", wd, ldLibraryPath)
+					Expect(proc).To(
+						ContainEnv(fmt.Sprintf("LD_LIBRARY_PATH=%s", ldLibraryPath)),
+					)
 				})
 
 				It("should forward output", func() {

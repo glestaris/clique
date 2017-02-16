@@ -24,7 +24,9 @@ start() {
   $BASH_SOURCE check > /dev/null 2> /dev/null
   [ $? -eq 0 ] && echo "Agent is running already" && exit 1
 
-  ./clique-agent -config=./config.json > ./stdout.log 2> ./stderr.log < /dev/null &
+  LD_LIBRARY_PATH=$PWD:$LD_LIBRARY_PATH \
+    ./clique-agent -config=./config.json \
+    > ./stdout.log 2> ./stderr.log < /dev/null &
   echo $! > ./clique-agent.pid
 
   echo "Process is started"

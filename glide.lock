@@ -6,7 +6,7 @@ imports:
   subpackages:
   - fakeclock
 - name: github.com/glestaris/devoops
-  version: a55a8116e39b8bb2b5ef8cd1d7f0672cc4a8a4a3
+  version: 43f809ab6f20a53316222fb750466036fec564fc
   subpackages:
   - matchers
 - name: github.com/labstack/echo
