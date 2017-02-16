@@ -53,6 +53,7 @@ func (c *Client) Transfer(spec TransferSpec) (TransferResults, error) {
 		"duration":   res.Duration,
 		"checksum":   res.Checksum,
 		"bytes_sent": res.BytesSent,
+		"rtt":        res.RTT,
 	}).Info("Outgoing transfer is completed")
 	return res, nil
 }

@@ -22,11 +22,16 @@ func NewSender(logger *logrus.Logger) *Sender {
 func (s *Sender) SendTransfer(spec transfer.TransferSpec, conn io.ReadWriter) (
 	transfer.TransferResults, error,
 ) {
+	s.logger.Debug("[IPERF] Sending a transfer...")
+
 	iperfPort, err := s.handshake(conn)
 	if err != nil {
+		s.logger.Debugf("[IPERF] Handshake failed: %s", err)
 		return transfer.TransferResults{}, err
 	}
+	s.logger.Debug("[IPERF] Handshake went through!")
 
+	s.logger.Debug("[IPERF] About to run the test...")
 	return runner.RunTest(runner.ClientConfig{
 		// Transfer target
 		TargetHostIP:   spec.IP,

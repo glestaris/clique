@@ -103,7 +103,7 @@ func RunTest(cfg ClientConfig) (transfer.TransferResults, error) {
 		return res, fmt.Errorf("parsing duration: %s", err)
 	}
 	if len(rep.End.Streams) != 0 {
-		meanRTT := rep.End.Streams[0].Sender.MeanRTT
+		meanRTT := rep.End.Streams[0].Sender.MeanRTT // this is in us
 		res.RTT = time.Microsecond * time.Duration(meanRTT)
 	}
 

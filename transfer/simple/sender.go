@@ -24,10 +24,15 @@ func NewSender(logger *logrus.Logger) *Sender {
 func (s *Sender) SendTransfer(spec transfer.TransferSpec, conn io.ReadWriter) (
 	transfer.TransferResults, error,
 ) {
+	s.logger.Debug("[SIMPLE] Sending a transfer...")
+
 	if err := s.handshake(conn); err != nil {
+		s.logger.Debugf("[SIMPLE] Handshake failed: %s", err)
 		return transfer.TransferResults{}, err
 	}
+	s.logger.Debug("[SIMPLE] Handshake went through!")
 
+	s.logger.Debug("[SIMPLE] About to run the test...")
 	randomData, err := s.randomBlock(1024)
 	if err != nil {
 		return transfer.TransferResults{}, err

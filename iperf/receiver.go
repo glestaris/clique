@@ -92,7 +92,7 @@ func (r *Receiver) IsBusy() bool {
 }
 
 func (r *Receiver) handleBusy(conn io.ReadWriter) error {
-	r.logger.Debugf("Server is busy!")
+	r.logger.Debug("[IPERF] Server is busy!")
 	if _, err := conn.Write([]byte("i-am-busy")); err != nil {
 		return err
 	}
@@ -103,6 +103,7 @@ func (r *Receiver) handleBusy(conn io.ReadWriter) error {
 func (r *Receiver) handleTransfer(conn io.ReadWriter) (
 	transfer.TransferResults, error,
 ) {
+	r.logger.Debug("[IPERF] Handling the transfer...")
 	msg := fmt.Sprintf("ok - %d", r.iperfPort)
 	if _, err := conn.Write([]byte(msg)); err != nil {
 		return transfer.TransferResults{}, err
